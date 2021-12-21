@@ -1,10 +1,6 @@
-<<<<<<< HEAD
-from bs4 import BeautifulSoup as bs 
-=======
 #!/usr/bin/env python3
 
 from bs4 import BeautifulSoup as bs
->>>>>>> 05da95790cdd30a978bc79511bb20a3b07b87ec6
 import os.path
 import requests
 import time
