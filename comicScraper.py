@@ -23,7 +23,6 @@ prefix = "https://readcomiconline.li"
 readType = "&readType=1" # Suffix for issue URLs that makes it show all images on one page
 script_dir = os.path.dirname(__file__)
 counter = 0 # Image Numbers
-path = script_dir + "\\" + comicTitle + "\\" # This is a windows path, replace forward slashes with backslashes for Linux
 
 # Headers as a first line defense against captchas
 # Doesn't seem to work, but adding a timer under 'main' did work
@@ -79,7 +78,11 @@ def saveImagesFromImageLinks(imageLinks):
 
 def saveImageFromUrl(url):
     global counter
-    global path
+    
+    if os.name == 'nt':
+        path = script_dir + "\\" + comicTitle + "\\"
+    else:
+        path = script_dir + "/" + comicTitle + "/"
 
     if not os.path.exists(path):
         os.makedirs(path)
