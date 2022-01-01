@@ -127,8 +127,8 @@ if __name__ == "__main__":
 
     args = [('-f', '--folder', 'The folder location to save the CBZ file to', dict(required='True')),
         ('-u', '--url', 'The url of the comic you want to download', dict(required='True'))]
-    for args1, args2, desc, options in args:
-        parser.add_argument(args1, args2, help=desc, **options)
+    for arg1, arg2, desc, options in args:
+        parser.add_argument(arg1, arg2, help=desc, **options)
 
     if len(sys.argv)==1:
         parser.print_help(sys.stderr)
