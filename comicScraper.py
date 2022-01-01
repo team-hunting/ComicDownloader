@@ -6,6 +6,7 @@ import requests
 import time
 import random
 import sys
+import argparse
 
 # general TODO's:
 # TODO: give the user an option to download final images to a selected folder path
@@ -78,7 +79,7 @@ def saveImagesFromImageLinks(imageLinks):
 
 def saveImageFromUrl(url):
     global counter
-    
+
     if os.name == 'nt':
         path = script_dir + "\\" + comicTitle + "\\"
     else:
@@ -118,28 +119,24 @@ def main():
     for issue in imageLinks:
         saveImagesFromImageLinks(issue)
 
-def usage():
-    print("Script for downloading CBZ files from readcomiconline.li")
-    print("")
-    print("Usage: comicScraper.py <url> <comicTitle>")
-    print("")
-    print("Arguments:")
-    print("  - url: The url of the comic you want to download")
-    print("  - comicTitle: The folder location to save the CBZ file to")
-    print("                (same as path of script execution)")
-    print("")
-    print("Example: comicScraper.py https://readcomiconline.li/Comic/Lucifer-2016 Lucifer")
-
 # TODO: if the user doesn't supply a folder name strip it from the url
 if __name__ == "__main__":
-    # TODO: use argparse here to get filename and url over sys
-    # TODO: should look like <script-name> -u / -url <url> -f / -folder <folder>
-    if len(sys.argv) <= 2:
-        usage()
-        sys.exit()
+    parser = argparse.ArgumentParser(prog='inputs', description='Script for downloading CBZ files from readcomiconline.li',
+        epilog='Example: comicScraper.py -u https://readcomiconline.li/Comic/Lucifer-2016 -f Lucifer',
+        formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=35))
 
-    startURL = str(sys.argv[1])
-    comicTitle = str(sys.argv[2])
+    args = [('-f', '--folder', 'The folder location to save the CBZ file to', dict(required='True')),
+        ('-u', '--url', 'The url of the comic you want to download', dict(required='True'))]
+    for args1, args2, desc, options in args:
+        parser.add_argument(args1, args2, help=desc, **options)
+
+    if len(sys.argv)==1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+    arguments = parser.parse_args()
+
+    startURL = arguments.url
+    comicTitle = arguments.folder
 
     print(f"Starting to scrape {comicTitle} from {startURL}")
 
