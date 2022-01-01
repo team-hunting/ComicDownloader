@@ -73,6 +73,7 @@ def extractImageUrlFromText(text):
     urlEnd = text.find("s1600")
     urlStart = text.find("https")
     return text[urlStart:urlEnd+5]
+
 def saveImagesFromImageLinks(imageLinks):
     for imageLink in imageLinks:
         saveImageFromUrl(imageLink)
@@ -110,7 +111,9 @@ def main():
     for issueLink in issueLinks:
         issueImageLinks = scrapeImageLinksFromIssue(issueLink)
         imageLinks.append(issueImageLinks)
-        time.sleep(random.randint(10,20))
+        counter=random.randint(10,20)
+        print(f"Sleeping for {counter} seconds")
+        time.sleep(counter)
     print("Image Links:")
     for issue in imageLinks: #all issues in their own sub-arrays
         print(issue)
