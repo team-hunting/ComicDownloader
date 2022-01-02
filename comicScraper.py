@@ -35,6 +35,12 @@ headers = {
     'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0'
     }
 
+# TODO: check if the folder exists
+# TODO: wrap the images into a CBZ from the folder name
+# TODO: purge the folder
+def folderCBZPacker(folder):
+    """Converts all images in a folder to a CBZ file"""
+    pass
 
 def getLinksFromStartPage(url):
     req = requests.get(url, headers)
@@ -75,11 +81,13 @@ def extractImageUrlFromText(text):
     return text[urlStart:urlEnd+5]
 
 def saveImagesFromImageLinks(imageLinks):
+    finalCount = len(imageLinks)
     for imageLink in imageLinks:
-        saveImageFromUrl(imageLink)
+        saveImageFromUrl(imageLink, finalCount)
 
-def saveImageFromUrl(url):
+def saveImageFromUrl(url, finalCount):
     global counter
+    digits=len(str(finalCount))
 
     if os.name == 'nt':
         path = script_dir + "\\" + comicTitle + "\\"
@@ -89,7 +97,9 @@ def saveImageFromUrl(url):
     if not os.path.exists(path):
         os.makedirs(path)
 
-    with open(path + str(counter) + ".jpg", "wb") as f:
+    filename = path + str(counter).rjust(digits,"0") + ".jpg"
+    # with open(filename.rjust(3,0), "wb") as f:
+    with open(filename, "wb") as f:
         f.write(requests.get(url).content)
         counter += 1
 
@@ -103,8 +113,7 @@ def main():
     for issue in issues:
         issueLink = prefix + issue + readType
         issueLinks.append(issueLink)
-    print("Issue Links:")
-    print(issueLinks)
+    print(f"Number of Issues {len(issueLinks)} and Links: {issueLinks}")
     print()
 
     imageLinks = []
