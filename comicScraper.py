@@ -13,7 +13,7 @@ import argparse
 # TODO: convert the images to CBZ files
 
 # geneneral TODO's pulled from aus's script:
-# TODO: add metadata from series page
+# TODO: add logic to handle a single issue
 # TODO: add a check that the number of dowloaded images match with the number converted into the CBZ (needed?)
 # TODO: ensure all image types are grabbed (jpg, png, gif, etc.) from the blogspot links (needed?)
 # TODO: add a function to just download images, and one to just convert named images to CBZ's
