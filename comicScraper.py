@@ -36,7 +36,7 @@ headers = {
     }
 
 # TODO: check if the folder exists
-# TODO: wrap the images into a CBZ from the folder name
+# TODO: wrap the images into a CBZ from the folder name (prepad with zeros)
 # TODO: purge the folder
 def folderCBZPacker(folder):
     """Converts all images in a folder to a CBZ file"""
@@ -98,7 +98,6 @@ def saveImageFromUrl(url, finalCount):
         os.makedirs(path)
 
     filename = path + str(counter).rjust(digits,"0") + ".jpg"
-    # with open(filename.rjust(3,0), "wb") as f:
     with open(filename, "wb") as f:
         f.write(requests.get(url).content)
         counter += 1
