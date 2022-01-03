@@ -171,8 +171,8 @@ if __name__ == "__main__":
         Note, if no folder value is provided the comic name will be populated from the url',
         epilog='Example: comicScraper.py -u https://readcomiconline.li/Comic/Sandman-Presents-Lucifer -f Lucifer',
         formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=35))
-    args = [('-f', '--folder', 'The folder location to save the CBZ file to'),
-            ('-u', '--url', 'The url of the comic you want to download')]
+    args = [('-f', '--folder', 'Optional: The folder location to save the CBZ file to'),
+            ('-u', '--url', 'Required: The url of the comic you want to download')]
     for arg1, arg2, desc in args:
         parser.add_argument(arg1, arg2, help=desc)
 
