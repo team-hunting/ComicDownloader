@@ -9,19 +9,19 @@ Downloads Comics from readcomiconline.li
 
 ```shell
 ./comicScraper.py
-usage: inputs [-h] [-f FOLDER] [-u URL]
+usage: comicScraper.py [-h] [-f FOLDER] URL
 
-Script for downloading CBZ files from readcomiconline.li - Note, if no folder
-value is provided the comic name will be populated from the url
+Script for downloading CBZ files from readcomiconline.li
+
+positional arguments:
+  URL                   The url of the comic to download
 
 optional arguments:
-  -h, --help                  show this help message and exit
-  -f FOLDER, --folder FOLDER  The folder location to save the CBZ file to
-  -u URL, --url URL           The url of the comic you want to download
+  -h, --help            show this help message and exit
+  -f FOLDER, --folder FOLDER
+                        The folder to save the comic in
 
-Example: comicScraper.py -u https://readcomiconline.li/Comic/Sandman-Presents-
-Lucifer -f Lucifer
-
+Example: comicScraper.py https://readcomiconline.li/Comic/Sandman-Presents-Lucifer
 ```
 
 Notes:

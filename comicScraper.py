@@ -10,7 +10,7 @@ import argparse
 import shutil
 
 # general TODO's:
-# TODO: give the user an option to download final images to a selected folder path
+# TODO: give the user an option to set a custom directory to download images and/or final CBZ to
 
 # geneneral TODO's pulled from aus's script:
 # TODO: add logic to handle a single issue
@@ -45,11 +45,13 @@ def folderCBZPacker(path, issuename="Complete"):
         shutil.make_archive(comicTitle + "-" + issuename, 'zip', path + "/" + issuename)
     os.rename(comicTitle + "-" + issuename + ".zip", comicTitle + "-" + issuename + ".cbz")
 
+# TODO: this could cause an issues when downloading a single issue
 def getIssueName(issueLink, startURL):
     # first get the issue name/number. remove the start url, trim the leading /, and everything after the ?
     issueName = issueLink.replace(startURL, "", 1)[1:].split("?",1)[0]
     return issueName
 
+# TODO: this could cause an issues when downloading a single issue
 def getComicTitle(url):
     startURL = prefix + "/Comic/"
     title = url.replace(startURL, "", 1)
@@ -151,30 +153,24 @@ def main():
         time.sleep(counter)
     print(f"Image links: {' '.join(map(str, imageLinks))}")
 
-    # old way of saving all the images in one go (using a list)
+    # uses the list object to package all the images into a single CBZ
     for issue in imageLinks:
         saveImagesFromImageLinks(issue)
-    # zip all the images into a complete cbz
     folderCBZPacker(comicTitle)
 
-    # TODO: zip the folders as filename-issue.cbz (input from -f and the name derived from getIssueName)
+    # uses the dict object to package the images into multipul CBZs
     for key in issueImageDict:
         global COUNTER
         COUNTER = 1
         path = saveImagesFromImageLinks(issueImageDict[key], key)
         folderCBZPacker(comicTitle, key)
 
-# TODO: if the user doesn't supply a folder name strip it from the url
 if __name__ == "__main__":
-    # build the parser object
-    parser = argparse.ArgumentParser(prog='inputs', description='Script for downloading CBZ files from readcomiconline.li - \
-        Note, if no folder value is provided the comic name will be populated from the url',
-        epilog='Example: comicScraper.py -u https://readcomiconline.li/Comic/Sandman-Presents-Lucifer -f Lucifer',
-        formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=35))
-    args = [('-f', '--folder', 'Optional: The folder location to save the CBZ file to'),
-            ('-u', '--url', 'Required: The url of the comic you want to download')]
-    for arg1, arg2, desc in args:
-        parser.add_argument(arg1, arg2, help=desc)
+    # build the parser
+    parser = argparse.ArgumentParser(description='Script for downloading CBZ files from readcomiconline.li',
+    epilog='Example: comicScraper.py https://readcomiconline.li/Comic/Sandman-Presents-Lucifer')
+    parser.add_argument('URL', help='The url of the comic to download')
+    parser.add_argument('-f', '--folder', help='The folder to save the comic in')
 
     # ensure that no args is a help call
     if len(sys.argv)==1:
@@ -183,12 +179,7 @@ if __name__ == "__main__":
     arguments = parser.parse_args()
 
     # set variables from arguments
-    if arguments.url != None:
-        startURL = arguments.url
-    else:
-        print("The -u / --url argument is required")
-        print("please run the script with -h or --help for more information")
-        sys.exit(1)
+    startURL = arguments.URL
     if arguments.folder != None:
         comicTitle = arguments.folder
     else:
