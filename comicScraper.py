@@ -57,7 +57,7 @@ def getComicTitle(url, issue=False):
     title = url.replace(startURL, "", 1)
 
     if issue:
-        # remove the issue number from the title
+        # Add the issue number to the title
         titlePieces =   title.split("/")
         issueTitle = titlePieces[1].split("?")[0]
         title = titlePieces[0] + "-" + issueTitle
@@ -110,7 +110,6 @@ def saveImagesFromImageLinks(imageLinks, length, issueName=""):
 
 def saveImageFromUrl(url, length, issueName=""):
     global COUNTER
-
     digits=len(str(length))
 
     if os.name == 'nt':
@@ -137,14 +136,13 @@ def saveImageFromUrl(url, length, issueName=""):
 def main():
     comicLength = 0
 
-    if not singleIssue:
-        issues = getLinksFromStartPage(startURL)
-        print(f"Issues: {issues}\n")
-    else:
+    if singleIssue:
         issues = [startURL.replace(prefix, "")]
-
-    print("issues: " + str(issues))
-
+    else:
+        issues = getLinksFromStartPage(startURL)
+    
+    print(f"Issues: {issues}\n")
+        
     issueLinks = []
     for issue in issues:
         issueLink = prefix + issue + readType
@@ -163,11 +161,12 @@ def main():
         imageLinks.append(issueImageLinks)
 
         if singleIssue:
+            # comicTitle contains the issue name in this case
             issueImageDict[comicTitle] = issueImageLinks
         else:
             issueImageDict[issueName] = issueImageLinks
-            
 
+        # This counter could probably be tweaked for faster performance    
         counter=random.randint(10,20)
         print(f"Sleeping for {counter} seconds")
         time.sleep(counter)
