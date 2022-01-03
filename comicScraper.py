@@ -50,6 +50,11 @@ def getIssueName(issueLink, startURL):
     issueName = issueLink.replace(startURL, "", 1)[1:].split("?",1)[0]
     return issueName
 
+def getComicTitle(url):
+    startURL = prefix + "/Comic/"
+    title = url.replace(startURL, "", 1)
+    return title
+
 def getLinksFromStartPage(url):
     req = requests.get(url, headers)
     soup = bs(req.content, 'html.parser')
@@ -162,13 +167,14 @@ def main():
 # TODO: if the user doesn't supply a folder name strip it from the url
 if __name__ == "__main__":
     # build the parser object
-    parser = argparse.ArgumentParser(prog='inputs', description='Script for downloading CBZ files from readcomiconline.li',
-        epilog='Example: comicScraper.py -u https://readcomiconline.li/Comic/Lucifer-2016 -f Lucifer',
+    parser = argparse.ArgumentParser(prog='inputs', description='Script for downloading CBZ files from readcomiconline.li - \
+        Note, if no folder value is provided the comic name will be populated from the url',
+        epilog='Example: comicScraper.py -u https://readcomiconline.li/Comic/Sandman-Presents-Lucifer -f Lucifer',
         formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=35))
-    args = [('-f', '--folder', 'The folder location to save the CBZ file to', dict(required='True')),
-        ('-u', '--url', 'The url of the comic you want to download', dict(required='True'))]
-    for arg1, arg2, desc, options in args:
-        parser.add_argument(arg1, arg2, help=desc, **options)
+    args = [('-f', '--folder', 'The folder location to save the CBZ file to'),
+            ('-u', '--url', 'The url of the comic you want to download')]
+    for arg1, arg2, desc in args:
+        parser.add_argument(arg1, arg2, help=desc)
 
     # ensure that no args is a help call
     if len(sys.argv)==1:
@@ -177,8 +183,16 @@ if __name__ == "__main__":
     arguments = parser.parse_args()
 
     # set variables from arguments
-    startURL = arguments.url
-    comicTitle = arguments.folder
+    if arguments.url != None:
+        startURL = arguments.url
+    else:
+        print("The -u / --url argument is required")
+        print("please run the script with -h or --help for more information")
+        sys.exit(1)
+    if arguments.folder != None:
+        comicTitle = arguments.folder
+    else:
+        comicTitle = getComicTitle(startURL)
 
     print(f"Starting to scrape {comicTitle} from {startURL}")
 
