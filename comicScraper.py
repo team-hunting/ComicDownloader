@@ -38,6 +38,20 @@ headers = {
     'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0'
     }
 
+# TODO: double check this is the list/array that are you human shows up in
+def dealWithCaptcha(imageLinks):
+    # check for single url
+    if "/Special/AreYouHuman" in imageLinks:
+        return True
+    # check for list of urls
+    for singleLink in imageLinks:
+        if "/Special/AreYouHuman" in singleLink:
+            print("Captcha Detected, Opening Browser")
+            webbrowser.open(singleLink)
+            input("\nPlease complete the captcha and press enter\n")
+            return True
+    return False
+
 def folderCBZPacker(path, issuename="Complete"):
     # NOTE: this wont work for mixed media as it zips all images AND subfolders
     if issuename == "Complete":
