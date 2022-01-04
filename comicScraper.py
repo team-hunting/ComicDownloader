@@ -12,6 +12,8 @@ import webbrowser
 
 # general TODO's:
 # TODO: give the user an option to set a custom directory to download images and/or final CBZ to
+# TODO: add the option to download a range of issues
+# TODO: add versioning to the script, probably in the help section (following these rules https://semver.org/)
 
 # geneneral TODO's pulled from aus's script:
 # TODO: add logic to handle a single issue
@@ -218,11 +220,15 @@ def main(fullComicDownload, singleIssueDownload, title):
 
 
 if __name__ == "__main__":
+    # set versioning, follows https://semver.org/
+    VERSION = "0.1.0"
+
     # build the parser
-    parser = argparse.ArgumentParser(description='Script for downloading CBZ files from readcomiconline.li',
+    parser = argparse.ArgumentParser(description=f'Script for downloading CBZ files from readcomiconline.li, version {VERSION}',
     epilog='Example: comicScraper.py https://readcomiconline.li/Comic/Sandman-Presents-Lucifer')
     parser.add_argument('URL', help='The url of the comic to download')
     parser.add_argument('-f', '--folder', help='The folder to save the comic in')
+    parser.add_argument('-v', '--version', help='Display the current version of the script', action='version', version=VERSION)
     parser.add_argument('-c', '--complete', help='Download the entire comic into one folder. Omit this argument to download each issue into its own folder', action='store_true')
 
     # ensure that no args is a help call
