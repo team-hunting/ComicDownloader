@@ -12,6 +12,7 @@ import shutil
 # general TODO's:
 # TODO: give the user an option to set a custom directory to download images and/or final CBZ to
 # TODO: add the option to download a range of issues
+# TODO: add versioning to the script, probably in the help section (following these rules https://semver.org/)
 
 # geneneral TODO's pulled from aus's script:
 # TODO: add logic to handle a single issue
