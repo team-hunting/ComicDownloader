@@ -8,12 +8,10 @@ import random
 import sys
 import argparse
 import shutil
-import webbrowser
 
 # general TODO's:
 # TODO: give the user an option to set a custom directory to download images and/or final CBZ to
 # TODO: add the option to download a range of issues
-# TODO: add versioning to the script, probably in the help section (following these rules https://semver.org/)
 
 # geneneral TODO's pulled from aus's script:
 # TODO: add logic to handle a single issue
@@ -106,11 +104,6 @@ def scrapeImageLinksFromIssue(url):
     lines = soup.split("\n")
     imageLinks = []
 
-    # TODO: flesh this out
-    if dealWithCaptcha(soup):
-        # NOTE: this is also a valid place to check for captcha
-        print("hit a captcha in the soup call")
-
     for line in lines:
         if "https://2.bp.blogspot.com" in line:
             imageUrl = extractImageUrlFromText(line)
@@ -124,7 +117,6 @@ def extractImageUrlFromText(text):
     return text[urlStart:urlEnd+5]
 
 def saveImagesFromImageLinks(imageLinks, numberOfImages, issueName=""):
-    path = ""
     for imageLink in imageLinks:
         path = saveImageFromUrl(imageLink, numberOfImages, issueName)
     # path should be the same for all images per folder
@@ -177,12 +169,9 @@ def main(fullComicDownload, singleIssueDownload, title):
     imageLinks = []
     for issueLink in issueLinks:
         issueName = getIssueName(issueLink, startURL)
-        print(f"Pulling images for issue {issueName}")
         issueImageLinks = scrapeImageLinksFromIssue(issueLink)
-        print(f"\nissueLink is {issueLink}")
-        print(f"images are: {issueImageLinks}\n")
-        if dealWithCaptcha(issueImageLinks):
-            issueImageLinks = scrapeImageLinksFromIssue(issueLink)
+        # TODO: add a check here for /special/areyouhuman
+        # TODO: kick into a chrome window and wait for user input
         imageLinks.append(issueImageLinks)
 
         if singleIssueDownload:
