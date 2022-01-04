@@ -112,16 +112,15 @@ do
 
     for image in *
     do
-        # might want to consider numbering these "001.cbz" over "1.cbz"
         mv "$image" "$(echo $image | grep -o RCO[0-9]\* | grep -o [0-9]\*).jpg"
     done
 
     zip "$FILENAME-$NUM".cbz ./*
     mkdir -p ~/book/$FILENAME
     mv ./*.cbz ~/book/$FILENAME
-
     cd $LAND
 done
+
 rm -rf /tmp/book/*
 echo "books downloaded:"
 ls ~/book/$FILENAME
