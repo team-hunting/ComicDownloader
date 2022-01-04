@@ -40,6 +40,10 @@ headers = {
 
 # TODO: double check this is the list/array that are you human shows up in
 def dealWithCaptcha(imageLinks):
+    # check for single url
+    if "/Special/AreYouHuman" in imageLinks:
+        return True
+    # check for list of urls
     for singleLink in imageLinks:
         if "/Special/AreYouHuman" in singleLink:
             print("Captcha Detected, Opening Browser")
@@ -99,6 +103,10 @@ def scrapeImageLinksFromIssue(url):
     soup = soup.prettify()
     lines = soup.split("\n")
     imageLinks = []
+
+    # TODO: deal with this/cleanup
+    if dealWithCaptcha(soup):
+        print("\n\nCAPTCHA\n\n")
 
     for line in lines:
         if "https://2.bp.blogspot.com" in line:
