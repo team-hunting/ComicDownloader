@@ -26,7 +26,6 @@ prefix = "https://readcomiconline.li"
 readType = "&readType=1" # Suffix for issue URLs that makes it show all images on one page
 script_dir = os.path.dirname(__file__)
 COUNTER = 0 # Image Numbers
-downloadFull = False
 
 # Headers as a first line defense against captchas
 # Doesn't seem to work, but adding a timer under 'main' did work
@@ -102,15 +101,15 @@ def extractImageUrlFromText(text):
     urlStart = text.find("https")
     return text[urlStart:urlEnd+5]
 
-def saveImagesFromImageLinks(imageLinks, length, issueName=""):
+def saveImagesFromImageLinks(imageLinks, numberOfImages, issueName=""):
     for imageLink in imageLinks:
-        path = saveImageFromUrl(imageLink, length, issueName)
+        path = saveImageFromUrl(imageLink, numberOfImages, issueName)
     # path should be the same for all images per folder
     return path
 
-def saveImageFromUrl(url, length, issueName=""):
+def saveImageFromUrl(url, numberOfImages, issueName=""):
     global COUNTER
-    digits=len(str(length))
+    digits=len(str(numberOfImages))
 
     if os.name == 'nt':
         if issueName != "":
@@ -133,10 +132,10 @@ def saveImageFromUrl(url, length, issueName=""):
     # pass the path back for usage with zip
     return path
 
-def main():
+def main(fullComicDownload, singleIssueDownload, title):
     comicLength = 0
 
-    if singleIssue:
+    if singleIssueDownload:
         issues = [startURL.replace(prefix, "")]
     else:
         issues = getLinksFromStartPage(startURL)
@@ -160,9 +159,9 @@ def main():
         # TODO: kick into a chrome window and wait for user input
         imageLinks.append(issueImageLinks)
 
-        if singleIssue:
-            # comicTitle contains the issue name in this case
-            issueImageDict[comicTitle] = issueImageLinks
+        if singleIssueDownload:
+            # title contains the issue name in this case
+            issueImageDict[title] = issueImageLinks
         else:
             issueImageDict[issueName] = issueImageLinks
 
@@ -173,14 +172,14 @@ def main():
     print(f"Image links: {' '.join(map(str, imageLinks))}")
 
     # Determine length of full comic (how many zeroes to pad)
-    if downloadFull:
+    if fullComicDownload:
         for key in issueImageDict:
             comicLength += len(issueImageDict[key])
 
         # uses the list object to package all the images into a single CBZ
         for issue in imageLinks:
             saveImagesFromImageLinks(issue, comicLength)
-        folderCBZPacker(comicTitle)
+        folderCBZPacker(title)
 
     else:
         # uses the dict object to package the images into multiple CBZs
@@ -188,7 +187,7 @@ def main():
             global COUNTER
             COUNTER = 1
             path = saveImagesFromImageLinks(issueImageDict[key], len(issueImageDict[key]), key)
-            if singleIssue:
+            if singleIssueDownload:
                 folderCBZPacker(comicTitle, "")
             else:
                 folderCBZPacker(comicTitle, key)
@@ -200,7 +199,7 @@ if __name__ == "__main__":
     epilog='Example: comicScraper.py https://readcomiconline.li/Comic/Sandman-Presents-Lucifer')
     parser.add_argument('URL', help='The url of the comic to download')
     parser.add_argument('-f', '--folder', help='The folder to save the comic in')
-    parser.add_argument('-c', '--complete', help='Download the entire comic into one folder. Omit this argument to download each issue into its own folder')
+    parser.add_argument('-c', '--complete', help='Download the entire comic into one folder. Omit this argument to download each issue into its own folder', action='store_true')
 
     # ensure that no args is a help call
     if len(sys.argv)==1:
@@ -222,14 +221,15 @@ if __name__ == "__main__":
     else:
         print("No title specified. Reading title from Url...")
         comicTitle = getComicTitle(startURL, singleIssue)
-        print("Using title: " + comicTitle)
+        print(f"Using title: {comicTitle}")
 
-    if arguments.complete != None and singleIssue == False:
+    downloadFull = False
+    if arguments.complete == True and singleIssue == False:
         print("Argument -c detected and comic info URL supplied. Downloading entire comic into one folder")
         downloadFull = True
 
     print(f"Starting to scrape {comicTitle} from {startURL}")
 
-    main()
+    main(downloadFull, singleIssue, comicTitle)
     # TODO: add a check that the file got downloaded and converted to a CBZ
     print("\n Comic Downloaded")
