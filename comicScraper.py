@@ -11,6 +11,7 @@ import shutil
 
 # general TODO's:
 # TODO: give the user an option to set a custom directory to download images and/or final CBZ to
+# TODO: add the option to download a range of issues
 
 # geneneral TODO's pulled from aus's script:
 # TODO: add logic to handle a single issue
