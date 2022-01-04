@@ -104,9 +104,10 @@ def scrapeImageLinksFromIssue(url):
     lines = soup.split("\n")
     imageLinks = []
 
-    # TODO: deal with this/cleanup
+    # TODO: flesh this out
     if dealWithCaptcha(soup):
-        print("\n\nCAPTCHA\n\n")
+        # NOTE: this is also a valid place to check for captcha
+        print("hit a captcha in the soup call")
 
     for line in lines:
         if "https://2.bp.blogspot.com" in line:
