@@ -141,9 +141,9 @@ def main(fullComicDownload, singleIssueDownload, title):
         issues = [startURL.replace(prefix, "")]
     else:
         issues = getLinksFromStartPage(startURL)
-    
+
     print(f"Issues: {issues}\n")
-        
+
     issueLinks = []
     for issue in issues:
         issueLink = prefix + issue + readType
@@ -167,7 +167,7 @@ def main(fullComicDownload, singleIssueDownload, title):
         else:
             issueImageDict[issueName] = issueImageLinks
 
-        # This counter could probably be tweaked for faster performance    
+        # This counter could probably be tweaked for faster performance
         counter=random.randint(10,20)
         print(f"Sleeping for {counter} seconds")
         time.sleep(counter)
@@ -193,14 +193,18 @@ def main(fullComicDownload, singleIssueDownload, title):
                 folderCBZPacker(comicTitle, "")
             else:
                 folderCBZPacker(comicTitle, key)
-    
+
 
 if __name__ == "__main__":
+    # set versioning, follows https://semver.org/
+    VERSION = "0.1.0"
+
     # build the parser
-    parser = argparse.ArgumentParser(description='Script for downloading CBZ files from readcomiconline.li',
+    parser = argparse.ArgumentParser(description=f'Script for downloading CBZ files from readcomiconline.li, version {VERSION}',
     epilog='Example: comicScraper.py https://readcomiconline.li/Comic/Sandman-Presents-Lucifer')
     parser.add_argument('URL', help='The url of the comic to download')
     parser.add_argument('-f', '--folder', help='The folder to save the comic in')
+    parser.add_argument('-v', '--version', help='Display the current version of the script', action='version', version=VERSION)
     parser.add_argument('-c', '--complete', help='Download the entire comic into one folder. Omit this argument to download each issue into its own folder', action='store_true')
 
     # ensure that no args is a help call
