@@ -8,6 +8,7 @@ import random
 import sys
 import argparse
 import shutil
+import webbrowser
 
 # general TODO's:
 # TODO: give the user an option to set a custom directory to download images and/or final CBZ to
@@ -36,6 +37,16 @@ headers = {
     'Access-Control-Max-Age': '3600',
     'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0'
     }
+
+# TODO: double check this is the list/array that are you human shows up in
+def dealWithCaptcha(imageLinks):
+    for singleLink in imageLinks:
+        if "/Special/AreYouHuman" in singleLink:
+            print("Captcha Detected, Opening Browser")
+            webbrowser.open(singleLink)
+            input("\nPlease complete the captcha and press enter\n")
+            return True
+    return False
 
 def folderCBZPacker(path, issuename="Complete"):
     # NOTE: this wont work for mixed media as it zips all images AND subfolders
@@ -102,6 +113,7 @@ def extractImageUrlFromText(text):
     return text[urlStart:urlEnd+5]
 
 def saveImagesFromImageLinks(imageLinks, numberOfImages, issueName=""):
+    path = ""
     for imageLink in imageLinks:
         path = saveImageFromUrl(imageLink, numberOfImages, issueName)
     # path should be the same for all images per folder
@@ -139,9 +151,9 @@ def main(fullComicDownload, singleIssueDownload, title):
         issues = [startURL.replace(prefix, "")]
     else:
         issues = getLinksFromStartPage(startURL)
-    
+
     print(f"Issues: {issues}\n")
-        
+
     issueLinks = []
     for issue in issues:
         issueLink = prefix + issue + readType
@@ -154,9 +166,12 @@ def main(fullComicDownload, singleIssueDownload, title):
     imageLinks = []
     for issueLink in issueLinks:
         issueName = getIssueName(issueLink, startURL)
+        print(f"Pulling images for issue {issueName}")
         issueImageLinks = scrapeImageLinksFromIssue(issueLink)
-        # TODO: add a check here for /special/areyouhuman
-        # TODO: kick into a chrome window and wait for user input
+        print(f"\nissueLink is {issueLink}")
+        print(f"images are: {issueImageLinks}\n")
+        if dealWithCaptcha(issueImageLinks):
+            issueImageLinks = scrapeImageLinksFromIssue(issueLink)
         imageLinks.append(issueImageLinks)
 
         if singleIssueDownload:
@@ -165,7 +180,7 @@ def main(fullComicDownload, singleIssueDownload, title):
         else:
             issueImageDict[issueName] = issueImageLinks
 
-        # This counter could probably be tweaked for faster performance    
+        # This counter could probably be tweaked for faster performance
         counter=random.randint(10,20)
         print(f"Sleeping for {counter} seconds")
         time.sleep(counter)
@@ -191,7 +206,7 @@ def main(fullComicDownload, singleIssueDownload, title):
                 folderCBZPacker(comicTitle, "")
             else:
                 folderCBZPacker(comicTitle, key)
-    
+
 
 if __name__ == "__main__":
     # build the parser
