@@ -38,6 +38,13 @@ Example: comicScraper.py https://readcomiconline.li/Comic/1000-Storms/Issue-4?id
 Notes:
 This script will create a folder in the current directory (directory the script is run from) with the name of your comic. The name of the subdirectory is denoted by the `-f / --folder` flag.
 
+The script will download comics to the current working directory, this means the script can be added to the PATH variable without issue. 
+Example:
+```
+cd /tmp/comics && $HOME/ComicDownloader/comicScraper.py <comic-url>
+# this will download the images and comics to the /tmp/comics directory 
+```
+
 This folder will then be filled with sequential images consisting of every image in every issue, in order.
 
 The `url` parameter may be either the information page for the comic as a whole, or the url for a single issue.
