@@ -39,6 +39,7 @@ headers = {
     }
 
 # TODO: double check this is the list/array that are you human shows up in
+# TODO: figure out where this needs to be slotted in to the master function 
 def dealWithCaptcha(imageLinks):
     # check for single url
     if "/Special/AreYouHuman" in imageLinks:
