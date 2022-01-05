@@ -25,7 +25,7 @@ import shutil
 
 prefix = "https://readcomiconline.li"
 readType = "&readType=1" # Suffix for issue URLs that makes it show all images on one page
-script_dir = os.path.dirname(__file__)
+script_dir = os.getcwd() # lets the user add the script to their PATH var and have it populate in current working directory
 COUNTER = 0 # Image Numbers
 
 # Headers as a first line defense against captchas
