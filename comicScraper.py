@@ -114,7 +114,9 @@ def scrapeImageLinksFromIssue(url):
 def extractImageUrlFromText(text):
     urlEnd = text.find("s1600")
     urlStart = text.find("https")
-    return text[urlStart:urlEnd+5]
+    output = text[urlStart:urlEnd+5]
+    output.replace("s1600","s0")
+    return output
 
 def saveImagesFromImageLinks(imageLinks, numberOfImages, issueName=""):
     for imageLink in imageLinks:
