@@ -39,7 +39,7 @@ headers = {
     'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0'
     }
 
-def checkForCaptcha(line,baseUrl):
+def checkForCaptcha(line, baseUrl):
     if "AreYouHuman" in line:
         print("Captcha Detected, Opening Browser")
         webbrowser.open(baseUrl)
@@ -104,9 +104,10 @@ def scrapeImageLinksFromIssue(url):
             imageUrl = extractImageUrlFromText(line)
             imageLinks.append(imageUrl)
 
-        if checkForCaptcha(line,url):
+        if checkForCaptcha(line, url):
             # Note: currently we are not actually solving the captcha so this will start an endless loop
-            return scrapeImageLinksFromIssue(url)    
+            # return scrapeImageLinksFromIssue(url)   
+            pass 
 
     return imageLinks
 
