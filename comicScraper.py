@@ -8,6 +8,7 @@ import random
 import sys
 import argparse
 import shutil
+import webbrowser
 
 # general TODO's:
 # TODO: give the user an option to set a custom directory to download images and/or final CBZ to
@@ -38,19 +39,12 @@ headers = {
     'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0'
     }
 
-# TODO: double check this is the list/array that are you human shows up in
-# TODO: figure out where this needs to be slotted in to the master function 
-def dealWithCaptcha(imageLinks):
-    # check for single url
-    if "/Special/AreYouHuman" in imageLinks:
+def checkForCaptcha(line, baseUrl):
+    if "AreYouHuman" in line:
+        print("Captcha Detected, Opening Browser")
+        webbrowser.open(baseUrl)
+        input("\nPlease complete the captcha and press enter\n")
         return True
-    # check for list of urls
-    for singleLink in imageLinks:
-        if "/Special/AreYouHuman" in singleLink:
-            print("Captcha Detected, Opening Browser")
-            webbrowser.open(singleLink)
-            input("\nPlease complete the captcha and press enter\n")
-            return True
     return False
 
 def folderCBZPacker(path, issuename="Complete"):
@@ -109,6 +103,11 @@ def scrapeImageLinksFromIssue(url):
         if "https://2.bp.blogspot.com" in line:
             imageUrl = extractImageUrlFromText(line)
             imageLinks.append(imageUrl)
+
+        if checkForCaptcha(line, url):
+            # Note: currently we are not actually solving the captcha so this will start an endless loop
+            # return scrapeImageLinksFromIssue(url)   
+            pass 
 
     return imageLinks
 
