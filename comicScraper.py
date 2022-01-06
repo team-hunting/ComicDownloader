@@ -8,13 +8,9 @@ import random
 import sys
 import argparse
 import shutil
-import webbrowser
-
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-#from selenium.webdriver.common.by import By
-
 
 
 # general TODO's:
@@ -215,7 +211,6 @@ def main(fullComicDownload, singleIssueDownload, title, lowres):
     else:
         # uses the dict object to package the images into multiple CBZs
         for key in issueImageDict:
-            print("title: ", key)
             global COUNTER
             COUNTER = 1
             path = saveImagesFromImageLinks(issueImageDict[key], len(issueImageDict[key]), key)
@@ -246,7 +241,6 @@ if __name__ == "__main__":
 
     # set variables from arguments
     startURL = arguments.URL
-    print("StartUrl: ", startURL)
     singleIssue = False
     if "?id=" in startURL:
         singleIssue = True
