@@ -11,6 +11,7 @@ import shutil
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.firefox import GeckoDriverManager
 
 
 # general TODO's:
@@ -49,10 +50,20 @@ def checkForCaptcha(line):
     return False
 
 def solveCaptcha(url):
-    print("Installing chromedriver so that you can solve the captcha \n")
-    s=Service(ChromeDriverManager().install())
-    options = webdriver.ChromeOptions()
-    driver = webdriver.Chrome(service=s, options=options)
+    driverChoice = input("Do you prefer firefox 'f' or chrome 'c'? ")
+    if driverChoice == "f":
+        print("Downloading geckodriver so that you can solve the captcha \n")
+        s=Service(GeckoDriverManager().install())
+        driver = webdriver.Firefox(service=s)
+    elif driverChoice == "c":
+        print("Downloading chromedriver so that you can solve the captcha \n")
+        s=Service(ChromeDriverManager().install())
+        options = webdriver.ChromeOptions()
+        driver = webdriver.Chrome(service=s, options=options)
+    else:
+        print("You didn't select a valid option. Please enter c or f")
+        return solveCaptcha(url)
+
     driver.maximize_window()
     driver.get(url)
     input("Press Enter to continue once you have solved the captcha and closed the browser window")
@@ -264,6 +275,8 @@ if __name__ == "__main__":
     if arguments.lowres == True:
         print("Argument -l detected. Downloading low resolution images")
         lowres = True
+    else:
+        print("Downloading max quality images")
 
     print(f"Starting to scrape {comicTitle} from {startURL}")
 
