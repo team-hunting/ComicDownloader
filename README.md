@@ -5,6 +5,14 @@ Downloads Comics from readcomiconline.li
 
 ## To use this script from command line:
 
+**Setup**
+
+To ensure all run requirements are met, please do the following:
+ - install firefox or google chrome
+ - install python3.6 or greater (python3.8 is recommended)
+ - run `pip install -r requirements.txt`
+
+
 **Usage:**
 
 ```shell
@@ -32,18 +40,18 @@ Example: comicScraper.py https://readcomiconline.li/Comic/Sandman-Presents-Lucif
 - Generates title for you, creates one large folder with every image in it, and one large cbz
 Example: comicScraper.py https://readcomiconline.li/Comic/Sandman-Presents-Lucifer -f Lucifer -c
 - Uses title "Lucifer", creates one large folder with every image in it, and one large cbz
-Example: comicScraper.py https://readcomiconline.li/Comic/1000-Storms/Issue-4?id=186482 
+Example: comicScraper.py https://readcomiconline.li/Comic/1000-Storms/Issue-4?id=186482
 - Generates title for you, detects that a single issue link has been provided
 ```
 
 Notes:
 This script will create a folder in the current directory (directory the script is run from) with the name of your comic. The name of the subdirectory is denoted by the `-f / --folder` flag.
 
-The script will download comics to the current working directory, this means the script can be added to the PATH variable without issue. 
+The script will download comics to the current working directory, this means the script can be added to the PATH variable without issue.
 Example:
 ```
 cd /tmp/comics && $HOME/ComicDownloader/comicScraper.py <comic-url>
-# this will download the images and comics to the /tmp/comics directory 
+# this will download the images and comics to the /tmp/comics directory
 ```
 
 This folder will then be filled with sequential images consisting of every image in every issue, in order.

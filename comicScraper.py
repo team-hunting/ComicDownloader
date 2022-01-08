@@ -127,7 +127,7 @@ def scrapeImageLinksFromIssue(url, lowres):
 
         if checkForCaptcha(line):
             solveCaptcha(url)
-            return scrapeImageLinksFromIssue(url, lowres) 
+            return scrapeImageLinksFromIssue(url, lowres)
 
     return imageLinks
 
@@ -233,7 +233,7 @@ def main(fullComicDownload, singleIssueDownload, title, lowres):
 
 if __name__ == "__main__":
     # set versioning, follows https://semver.org/
-    VERSION = "0.1.10"
+    VERSION = "0.1.11"
 
     # build the parser
     parser = argparse.ArgumentParser(description=f'Script for downloading CBZ files from readcomiconline.li, version {VERSION}',
