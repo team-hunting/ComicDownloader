@@ -20,8 +20,9 @@ optional arguments:
   -f FOLDER, --folder FOLDER
                         The folder to save the comic in
   -v, --version         Display the current version of the script
-  -c, --complete        Download the entire comic into one folder. Omit this argument to download
-                        each issue into its own folder
+  -c, --complete        Download the entire comic into one folder. Omit this argument to download each issue into its own folder
+  -l, --lowres          Download low resolution images. Omit this argument to download the max quality images
+
 
 Example: comicScraper.py https://readcomiconline.li/Comic/Sandman-Presents-Lucifer
 

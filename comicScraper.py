@@ -8,7 +8,11 @@ import random
 import sys
 import argparse
 import shutil
-import webbrowser
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.firefox import GeckoDriverManager
+
 
 # general TODO's:
 # TODO: give the user an option to set a custom directory to download images and/or final CBZ to
@@ -39,13 +43,30 @@ headers = {
     'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0'
     }
 
-def checkForCaptcha(line, baseUrl):
+def checkForCaptcha(line):
     if "AreYouHuman" in line:
-        print("Captcha Detected, Opening Browser")
-        webbrowser.open(baseUrl)
-        input("\nPlease complete the captcha and press enter\n")
+        print("Captcha Detected")
         return True
     return False
+
+def solveCaptcha(url):
+    driverChoice = input("Do you prefer firefox 'f' or chrome 'c'? ")
+    if driverChoice == "f":
+        print("Downloading geckodriver so that you can solve the captcha \n")
+        s=Service(GeckoDriverManager().install())
+        driver = webdriver.Firefox(service=s)
+    elif driverChoice == "c":
+        print("Downloading chromedriver so that you can solve the captcha \n")
+        s=Service(ChromeDriverManager().install())
+        options = webdriver.ChromeOptions()
+        driver = webdriver.Chrome(service=s, options=options)
+    else:
+        print("You didn't select a valid option. Please enter c or f")
+        return solveCaptcha(url)
+
+    driver.maximize_window()
+    driver.get(url)
+    input("Press Enter to continue once you have solved the captcha and closed the browser window")
 
 def folderCBZPacker(path, issuename="Complete"):
     # NOTE: this wont work for mixed media as it zips all images AND subfolders
@@ -55,10 +76,10 @@ def folderCBZPacker(path, issuename="Complete"):
         shutil.make_archive(comicTitle + "-" + issuename, 'zip', path + "/" + issuename)
     os.rename(comicTitle + "-" + issuename + ".zip", comicTitle + "-" + issuename + ".cbz")
 
-# TODO: this could cause an issues when downloading a single issue
 def getIssueName(issueLink, startURL):
     # first get the issue name/number. remove the start url, trim the leading /, and everything after the ?
-    issueName = issueLink.replace(startURL, "", 1)[1:].split("?",1)[0]
+    issueName = issueLink.replace(startURL, "", 1)[0:].split("?",1)[0]
+    issueName = issueName.replace("/", "")
     return issueName
 
 def getComicTitle(url, issue=False):
@@ -92,7 +113,7 @@ def getLinksFromStartPage(url):
 
     return linkArray
 
-def scrapeImageLinksFromIssue(url):
+def scrapeImageLinksFromIssue(url, lowres):
     req = requests.get(url, headers)
     soup = bs(req.content, 'html.parser')
     soup = soup.prettify()
@@ -101,21 +122,23 @@ def scrapeImageLinksFromIssue(url):
 
     for line in lines:
         if "https://2.bp.blogspot.com" in line:
-            imageUrl = extractImageUrlFromText(line)
+            imageUrl = extractImageUrlFromText(line, lowres)
             imageLinks.append(imageUrl)
 
-        if checkForCaptcha(line, url):
-            # Note: currently we are not actually solving the captcha so this will start an endless loop
-            # return scrapeImageLinksFromIssue(url)   
-            pass 
+        if checkForCaptcha(line):
+            solveCaptcha(url)
+            return scrapeImageLinksFromIssue(url, lowres) 
 
     return imageLinks
 
-def extractImageUrlFromText(text):
+def extractImageUrlFromText(text, lowres):
     urlEnd = text.find("s1600")
     urlStart = text.find("https")
     output = text[urlStart:urlEnd+5]
-    output.replace("s1600","s0")
+    print("extractImageUrlFromText output ", output)
+    if not lowres:
+        output = output.replace("s1600","s0")
+        print("extractImageUrlFromText output ", output)
     return output
 
 def saveImagesFromImageLinks(imageLinks, numberOfImages, issueName=""):
@@ -149,7 +172,7 @@ def saveImageFromUrl(url, numberOfImages, issueName=""):
     # pass the path back for usage with zip
     return path
 
-def main(fullComicDownload, singleIssueDownload, title):
+def main(fullComicDownload, singleIssueDownload, title, lowres):
     comicLength = 0
 
     if singleIssueDownload:
@@ -171,9 +194,7 @@ def main(fullComicDownload, singleIssueDownload, title):
     imageLinks = []
     for issueLink in issueLinks:
         issueName = getIssueName(issueLink, startURL)
-        issueImageLinks = scrapeImageLinksFromIssue(issueLink)
-        # TODO: add a check here for /special/areyouhuman
-        # TODO: kick into a chrome window and wait for user input
+        issueImageLinks = scrapeImageLinksFromIssue(issueLink, lowres)
         imageLinks.append(issueImageLinks)
 
         if singleIssueDownload:
@@ -212,7 +233,7 @@ def main(fullComicDownload, singleIssueDownload, title):
 
 if __name__ == "__main__":
     # set versioning, follows https://semver.org/
-    VERSION = "0.1.0"
+    VERSION = "0.1.10"
 
     # build the parser
     parser = argparse.ArgumentParser(description=f'Script for downloading CBZ files from readcomiconline.li, version {VERSION}',
@@ -221,6 +242,7 @@ if __name__ == "__main__":
     parser.add_argument('-f', '--folder', help='The folder to save the comic in')
     parser.add_argument('-v', '--version', help='Display the current version of the script', action='version', version=VERSION)
     parser.add_argument('-c', '--complete', help='Download the entire comic into one folder. Omit this argument to download each issue into its own folder', action='store_true')
+    parser.add_argument('-l', '--lowres', help='Download low resolution images. Omit this argument to download the max quality images', action='store_true')
 
     # ensure that no args is a help call
     if len(sys.argv)==1:
@@ -249,8 +271,15 @@ if __name__ == "__main__":
         print("Argument -c detected and comic info URL supplied. Downloading entire comic into one folder")
         downloadFull = True
 
+    lowres = False
+    if arguments.lowres == True:
+        print("Argument -l detected. Downloading low resolution images")
+        lowres = True
+    else:
+        print("Downloading max quality images")
+
     print(f"Starting to scrape {comicTitle} from {startURL}")
 
-    main(downloadFull, singleIssue, comicTitle)
+    main(downloadFull, singleIssue, comicTitle, lowres)
     # TODO: add a check that the file got downloaded and converted to a CBZ
     print("\n Comic Downloaded")
