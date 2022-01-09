@@ -48,8 +48,11 @@ def checkForCaptcha(line):
         return True
     return False
 
-def solveCaptcha(url):
+def solveCaptcha(url, tries=0):
     driverChoice = input("Do you prefer firefox 'f' or chrome 'c'? ") or "c"
+    if tries > 2:
+        print("Too many tries, selecting chrome")
+        driverChoice = "c"
     if driverChoice == "f":
         print("Downloading geckodriver so that you can solve the captcha \n")
         s=Service(GeckoDriverManager().install())
@@ -61,7 +64,7 @@ def solveCaptcha(url):
         driver = webdriver.Chrome(service=s, options=options)
     else:
         print("You didn't select a valid option. Please enter c or f")
-        return solveCaptcha(url)
+        return solveCaptcha(url, tries+1)
 
     driver.maximize_window()
     driver.get(url)
