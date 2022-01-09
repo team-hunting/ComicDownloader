@@ -20,7 +20,6 @@ from webdriver_manager.firefox import GeckoDriverManager
 # TODO: add a subdirectory for each issue so we don't clutter up the script directory
 
 # geneneral TODO's pulled from aus's script:
-# TODO: add a check that the number of dowloaded images match with the number converted into the CBZ (needed?)
 # TODO: ensure all image types are grabbed (jpg, png, gif, etc.) from the blogspot links (needed?)
 # TODO: add a function to just download images, and one to just convert named images to CBZ's
 # TODO: add an option to just pass the search term and download all the series in the results (hit the search API)
@@ -87,9 +86,9 @@ def compairCBZtoIssueList(issues):
     named = []
     for issue in issues:
         named.append(getIssueName(issue, "/Comic/", "-"))
-    if len(allCBZFiles) != len(named):
-        missing = [comic for comic in named if comic not in allCBZFiles]
-        print(f"The number of downloaded cbz files and comic links do not match: cbz {len(allCBZFiles)} issues {len(named)}")
+    missing = [comic for comic in named if comic not in allCBZFiles]
+    if len(missing) > 0:
+        print(f"There was an error downloading {len(missing)} issues")
         print(f"The issues that are missing are: {missing}")
     return len(allCBZFiles)
 
