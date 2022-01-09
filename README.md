@@ -16,7 +16,8 @@ To ensure all run requirements are met, please do the following:
 **Usage:**
 
 ```shell
-./comicScraper.pyusage: comicScraper.py [-h] [-f FOLDER] [-v] [-c] URL
+./comicScraper.py
+usage: comicScraper.py [-h] [-f FOLDER] [-v] [-c] URL
 
 Script for downloading CBZ files from readcomiconline.li, version 0.1.0
 
