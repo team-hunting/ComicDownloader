@@ -17,9 +17,9 @@ from webdriver_manager.firefox import GeckoDriverManager
 # general TODO's:
 # TODO: give the user an option to set a custom directory to download images and/or final CBZ to
 # TODO: add the option to download a range of issues
+# TODO: add a subdirectory for each issue so we don't clutter up the script directory
 
 # geneneral TODO's pulled from aus's script:
-# TODO: add logic to handle a single issue
 # TODO: add a check that the number of dowloaded images match with the number converted into the CBZ (needed?)
 # TODO: ensure all image types are grabbed (jpg, png, gif, etc.) from the blogspot links (needed?)
 # TODO: add a function to just download images, and one to just convert named images to CBZ's
@@ -50,7 +50,7 @@ def checkForCaptcha(line):
     return False
 
 def solveCaptcha(url):
-    driverChoice = input("Do you prefer firefox 'f' or chrome 'c'? ")
+    driverChoice = input("Do you prefer firefox 'f' or chrome 'c'? ") or "c"
     if driverChoice == "f":
         print("Downloading geckodriver so that you can solve the captcha \n")
         s=Service(GeckoDriverManager().install())
@@ -74,12 +74,30 @@ def folderCBZPacker(path, issuename="Complete"):
         shutil.make_archive(comicTitle + "-" + issuename, 'zip', path)
     else:
         shutil.make_archive(comicTitle + "-" + issuename, 'zip', path + "/" + issuename)
-    os.rename(comicTitle + "-" + issuename + ".zip", comicTitle + "-" + issuename + ".cbz")
+    if issuename:
+        os.rename(comicTitle + "-" + issuename + ".zip", comicTitle + "-" + issuename + ".cbz")
+    else:
+        # removes trailing "-" in the filename
+        os.rename(comicTitle + "-" + issuename + ".zip", comicTitle + ".cbz")
 
-def getIssueName(issueLink, startURL):
-    # first get the issue name/number. remove the start url, trim the leading /, and everything after the ?
+# checks if the number of issues matches up with the number of downloads
+def compairCBZtoIssueList(issues):
+    # grab all the cbz files in the current directory
+    allCBZFiles = [comic.split(".")[0] for comic in os.listdir('.') if comic.endswith(".cbz")]
+    named = []
+    for issue in issues:
+        named.append(getIssueName(issue, "/Comic/", "-"))
+    if len(allCBZFiles) != len(named):
+        missing = [comic for comic in named if comic not in allCBZFiles]
+        print(f"The number of downloaded cbz files and comic links do not match: cbz {len(allCBZFiles)} issues {len(named)}")
+        print(f"The issues that are missing are: {missing}")
+    return len(allCBZFiles)
+
+def getIssueName(issueLink, startURL, replaceChar=""):
+    # first get the issue name/number.
+    # remove the start url, trim the leading /, and everything after the ?
     issueName = issueLink.replace(startURL, "", 1)[0:].split("?",1)[0]
-    issueName = issueName.replace("/", "")
+    issueName = issueName.replace("/", replaceChar)
     return issueName
 
 def getComicTitle(url, issue=False):
@@ -229,6 +247,8 @@ def main(fullComicDownload, singleIssueDownload, title, lowres):
                 folderCBZPacker(comicTitle, "")
             else:
                 folderCBZPacker(comicTitle, key)
+
+    compairCBZtoIssueList(issues)
 
 
 if __name__ == "__main__":
