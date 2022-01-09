@@ -80,7 +80,7 @@ def folderCBZPacker(path, issuename="Complete"):
         os.rename(comicTitle + "-" + issuename + ".zip", comicTitle + ".cbz")
 
 # checks if the number of issues matches up with the number of downloads
-def compairCBZtoIssueList(issues):
+def compareCBZtoIssueList(issues):
     # grab all the cbz files in the current directory
     allCBZFiles = [comic.split(".")[0] for comic in os.listdir('.') if comic.endswith(".cbz")]
     named = []
@@ -246,7 +246,7 @@ def main(fullComicDownload, singleIssueDownload, title, lowres):
             else:
                 folderCBZPacker(comicTitle, key)
 
-    compairCBZtoIssueList(issues)
+    compareCBZtoIssueList(issues)
 
 
 if __name__ == "__main__":
