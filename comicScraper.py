@@ -88,8 +88,7 @@ def compairCBZtoIssueList(issues):
         named.append(getIssueName(issue, "/Comic/", "-"))
     missing = [comic for comic in named if comic not in allCBZFiles]
     if len(missing) > 0:
-        print(f"There was an error downloading {len(missing)} issues")
-        print(f"The issues that are missing are: {missing}")
+        print(f"\nThere was an error downloading {missing}")
     return len(allCBZFiles)
 
 def getIssueName(issueLink, startURL, replaceChar=""):
