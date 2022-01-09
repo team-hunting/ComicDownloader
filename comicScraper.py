@@ -254,7 +254,9 @@ def main(fullComicDownload, singleIssueDownload, title, lowres, disableWait):
                 folderCBZPacker(comicTitle, key)
 
     downloadedBooks = compareCBZtoIssueList(issues)
-    print(f"\nDownloaded: {downloadedBooks}")
+    print(f"\nDownloaded:")
+    for book in downloadedBooks:
+        print(f"{book}")
 
 
 if __name__ == "__main__":
