@@ -8,7 +8,6 @@ Downloads Comics from readcomiconline.li
 **Setup**
 
 To ensure all run requirements are met, please do the following:
- - install firefox or google chrome
  - install python3.6 or greater (python3.8 is recommended)
  - run `pip install -r requirements.txt`
 
@@ -34,7 +33,7 @@ optional arguments:
   -l, --lowres          Download low resolution images. Omit this argument to download the max
                         quality images
   -d, --disable-wait    Disable the wait between requests (captcha guard)
-
+  -s, --selenium        Scrape image links using Selenium and a headless browser
 
 Example: comicScraper.py https://readcomiconline.li/Comic/Sandman-Presents-Lucifer
 - Generates title for you, creates a folder and cbz file for each issue separately
