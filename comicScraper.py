@@ -92,7 +92,9 @@ def compareCBZtoIssueList(issues):
     missing = [comic for comic in named if comic not in allCBZFiles]
     if len(missing) > 0:
         print(f"\nThere was an error downloading {missing}")
-    return len(allCBZFiles)
+        for missed in missing:
+            named.remove(missed)
+    return named
 
 def getIssueName(issueLink, startURL, replaceChar=""):
     # first get the issue name/number.
@@ -161,6 +163,7 @@ def extractImageUrlFromText(text, lowres):
     return output
 
 def saveImagesFromImageLinks(imageLinks, numberOfImages, issueName=""):
+    print("Downloading images...")
     for imageLink in imageLinks:
         path = saveImageFromUrl(imageLink, numberOfImages, issueName)
     # path should be the same for all images per folder
@@ -191,7 +194,7 @@ def saveImageFromUrl(url, numberOfImages, issueName=""):
     # pass the path back for usage with zip
     return path
 
-def main(fullComicDownload, singleIssueDownload, title, lowres):
+def main(fullComicDownload, singleIssueDownload, title, lowres, disableWait):
     comicLength = 0
 
     if singleIssueDownload:
@@ -223,9 +226,10 @@ def main(fullComicDownload, singleIssueDownload, title, lowres):
             issueImageDict[issueName] = issueImageLinks
 
         # This counter could probably be tweaked for faster performance
-        counter=random.randint(10,20)
-        print(f"Sleeping for {counter} seconds")
-        time.sleep(counter)
+        if not disableWait:
+            counter=random.randint(10,20)
+            print(f"Sleeping for {counter} seconds")
+            time.sleep(counter)
     print(f"Image links: {' '.join(map(str, imageLinks))}")
 
     # Determine length of full comic (how many zeroes to pad)
@@ -249,12 +253,15 @@ def main(fullComicDownload, singleIssueDownload, title, lowres):
             else:
                 folderCBZPacker(comicTitle, key)
 
-    compareCBZtoIssueList(issues)
+    downloadedBooks = compareCBZtoIssueList(issues)
+    print(f"\nDownloaded:")
+    for book in downloadedBooks:
+        print(f"{book}")
 
 
 if __name__ == "__main__":
     # set versioning, follows https://semver.org/
-    VERSION = "0.1.11"
+    VERSION = "0.1.12"
 
     # build the parser
     parser = argparse.ArgumentParser(description=f'Script for downloading CBZ files from readcomiconline.li, version {VERSION}',
@@ -264,6 +271,7 @@ if __name__ == "__main__":
     parser.add_argument('-v', '--version', help='Display the current version of the script', action='version', version=VERSION)
     parser.add_argument('-c', '--complete', help='Download the entire comic into one folder. Omit this argument to download each issue into its own folder', action='store_true')
     parser.add_argument('-l', '--lowres', help='Download low resolution images. Omit this argument to download the max quality images', action='store_true')
+    parser.add_argument('-d', '--disable-wait', help='Disable the wait between requests (captcha guard)', action='store_true')
 
     # ensure that no args is a help call
     if len(sys.argv)==1:
@@ -301,6 +309,5 @@ if __name__ == "__main__":
 
     print(f"Starting to scrape {comicTitle} from {startURL}")
 
-    main(downloadFull, singleIssue, comicTitle, lowres)
-    # TODO: add a check that the file got downloaded and converted to a CBZ
-    print("\n Comic Downloaded")
+    main(downloadFull, singleIssue, comicTitle, lowres, arguments.disable_wait)
+    print("\nComic Downloaded")
