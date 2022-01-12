@@ -218,14 +218,17 @@ def downloadIssueWithSelenium(fullComicDownload, driver, service, issue, imageLi
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         driver = webdriver.Chrome(service=service, options=options)
         driver.maximize_window()
+        print("Attempting to add Adblocker extension... Please wait for page to refresh")
+        driver.get("https://www.google.com")
         driver.get(issue)
         input("Press Enter to continue once you have solved the captcha and closed the browser window")
         options = webdriver.ChromeOptions()
         # verbose (turned off)
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
-        if not seleniumDisplay:
-            options.add_argument("--headless")
+        if seleniumDisplay:
             options.add_extension('AdblockPlusModified.crx')
+        else:    
+            options.add_argument("--headless")
         driver = webdriver.Chrome(service=service, options=options)
         return downloadIssueWithSelenium(fullComicDownload, driver, service, issue, imageLinks, issueImageDict, startURL, title, singleIssueDownload, disableWait)
 
@@ -271,11 +274,15 @@ def downloadAllWithSelenium(fullComicDownload, startURL, issueLinks, title, sing
     # verbose (turned off)
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
-    if not seleniumDisplay:
-        options.add_argument("--headless")
+    if seleniumDisplay:
         # I modified the function detectFirstRun in the file background.js to prevent it from opening the 'introduction' tab on every run
         options.add_extension('AdblockPlusModified.crx')
-    driver = webdriver.Chrome(service=s, options=options)
+        driver = webdriver.Chrome(service=s, options=options)
+        print("Attempting to add Adblocker extension... Please wait for page to refresh")
+        driver.get("https://www.google.com")
+    else:
+        options.add_argument("--headless")
+        driver = webdriver.Chrome(service=s, options=options)
 
     issueImageDict = {}
     imageLinks = []
