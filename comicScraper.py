@@ -309,7 +309,7 @@ def main(fullComicDownload, singleIssueDownload, title, lowres, disableWait, sta
 
 if __name__ == "__main__":
     # set versioning, follows https://semver.org/
-    VERSION = "0.1.12"
+    VERSION = "0.1.13"
 
     # build the parser
     parser = argparse.ArgumentParser(description=f'Script for downloading CBZ files from readcomiconline.li, version {VERSION}',
