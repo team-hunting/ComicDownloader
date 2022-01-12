@@ -34,6 +34,8 @@ optional arguments:
                         quality images
   -d, --disable-wait    Disable the wait between requests (captcha guard)
   -s, --selenium        Scrape image links using Selenium and a headless browser
+  -sd, --selenium-display 
+                        Use Selenium in display mode 
 
 Example: comicScraper.py https://readcomiconline.li/Comic/Sandman-Presents-Lucifer
 - Generates title for you, creates a folder and cbz file for each issue separately
@@ -43,6 +45,8 @@ Example: comicScraper.py https://readcomiconline.li/Comic/Sandman-Presents-Lucif
 - Uses title "Lucifer", creates one large folder with every image in it, and one large cbz
 Example: comicScraper.py https://readcomiconline.li/Comic/1000-Storms/Issue-4?id=186482
 - Generates title for you, detects that a single issue link has been provided
+Example: comicScraper.py https://readcomiconline.li/Comic/Fables -l -d -s -sd
+- Generates title for you, disables wait timer, downloads low(er) quality images, uses Selenium in display mode, downloads each issue into separate folders and CBZ files
 ```
 
 Notes:
