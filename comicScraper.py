@@ -166,6 +166,44 @@ def extractImageUrlFromText(text, lowres):
         print("extractImageUrlFromText output ", output)
     return output
 
+def displayDownloadInfo(path):
+    list_of_files = list(filter( lambda x: os.path.isfile(os.path.join(path, x)), os.listdir(path)))
+    files_with_size = [ (file_name, os.stat(os.path.join(path, file_name)).st_size) for file_name in list_of_files  ]
+
+    print(f"Downloaded {len(list_of_files)} files to {path}")
+    smallFiles = []
+    totalSize = 0
+    for file_name, size in files_with_size:
+        totalSize += size
+        if size < 10000:
+            smallFiles.append(file_name)
+
+    sizeDisplay = round((totalSize/1000000),3)
+    
+    if sizeDisplay > 1:
+        sizeType = "mb"
+    else:
+        sizeType = "kb"
+        sizeDisplay = round((totalSize/1000),3)
+
+    print(f"Total size of files: {sizeDisplay}{sizeType}")
+
+    sizeDisplay = round(((totalSize/1000000)/len(list_of_files)),3)
+
+    if sizeDisplay > 1:
+        sizeType = "mb"
+    else:
+        sizeDisplay = round(((totalSize/1000)/len(list_of_files)),3)
+        sizeType = "kb"
+
+    print(f"Average file size: {sizeDisplay}{sizeType}")
+
+    if len(smallFiles) > 0:
+        print(f"The following {len(smallFiles)} files are smaller than 10kb")
+        print(smallFiles)
+    else:
+        print("All files are larger than 10kb - good to go!")
+
 def saveImagesFromImageLinks(imageLinks, numberOfImages, issueName=""):
     global COUNTER
     initial = COUNTER
@@ -173,23 +211,7 @@ def saveImagesFromImageLinks(imageLinks, numberOfImages, issueName=""):
     for imageLink in imageLinks:
         path = saveImageFromUrl(imageLink, numberOfImages, issueName)
     # path should be the same for all images per folder
-    print(f"Downloaded {COUNTER - initial} images")
-    
-    #doesn't work
-    #print(f"{len([name for name in os.listdir(path) if os.path.isfile(name)])} Files exist in {path}")
-    
-    list_of_files = list(filter( lambda x: os.path.isfile(os.path.join(path, x)), os.listdir(path)))
-    files_with_size = [ (file_name, os.stat(os.path.join(path, file_name)).st_size) for file_name in list_of_files  ]
-
-    print(f"{len(list_of_files)} Files now exist in {path}")
-    smallFiles = []
-    for file_name, size in files_with_size:
-        if size < 10000:
-            smallFiles.append(file_name)
-    if len(smallFiles) > 0:
-        print(f"The following {len(smallFiles)} files are smaller than 10kb")
-        print(smallFiles)
-
+    displayDownloadInfo(path)
     return path
 
 def saveImageFromUrl(url, numberOfImages, issueName=""):
