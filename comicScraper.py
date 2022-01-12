@@ -16,7 +16,6 @@ from webdriver_manager.firefox import GeckoDriverManager
 from selenium.webdriver.common.by import By
 
 # selenium TODO's
-# TODO: Add flag for selenium display mode (instead of headless mode)
 # TODO: Download uBlock Origin crx and use as the adblocker extension instead of Adblock Plus
 # TODO: Add Firefox support (if we care)
 
@@ -175,6 +174,21 @@ def saveImagesFromImageLinks(imageLinks, numberOfImages, issueName=""):
         path = saveImageFromUrl(imageLink, numberOfImages, issueName)
     # path should be the same for all images per folder
     print(f"Downloaded {COUNTER - initial} images")
+    
+    #doesn't work
+    #print(f"{len([name for name in os.listdir(path) if os.path.isfile(name)])} Files exist in {path}")
+    
+    list_of_files = list(filter( lambda x: os.path.isfile(os.path.join(path, x)), os.listdir(path)))
+    files_with_size = [ (file_name, os.stat(os.path.join(path, file_name)).st_size) for file_name in list_of_files  ]
+
+    print(f"{len(list_of_files)} Files now exist in {path}")
+    smallFiles = []
+    for file_name, size in files_with_size:
+        if size < 10000:
+            smallFiles.append(file_name)
+    if len(smallFiles) > 0:
+        print(f"The following {len(smallFiles)} files are smaller than 10kb")
+        print(smallFiles)
 
     return path
 
@@ -203,6 +217,12 @@ def saveImageFromUrl(url, numberOfImages, issueName=""):
     # pass the path back for usage with zip
     return path
 
+def runWait():
+    # This counter could probably be tweaked for faster performance
+    counter=random.randint(10,20)
+    print(f"Sleeping for {counter} seconds")
+    time.sleep(counter)
+
 def downloadIssueWithSelenium(fullComicDownload, driver, service, issue, imageLinks, issueImageDict, startURL, title, singleIssueDownload, disableWait, seleniumDisplay):
     issueName = getIssueName(issue, startURL)
     # I *think* that driver.get causes it to wait until the entire page finish loading
@@ -213,23 +233,16 @@ def downloadIssueWithSelenium(fullComicDownload, driver, service, issue, imageLi
     source = driver.page_source
     if "AreYouHuman" in source:
         print("\n\nCaptcha detected, solving...")
+        print("Starting new Selenium session for captcha...")
         options = webdriver.ChromeOptions()
         options.add_extension('AdblockPlusModified.crx')
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
-        driver = webdriver.Chrome(service=service, options=options)
-        driver.maximize_window()
+        captchaDriver = webdriver.Chrome(service=service, options=options)
+        captchaDriver.maximize_window()
         print("Attempting to add Adblocker extension... Please wait for page to refresh")
-        driver.get("https://www.google.com")
-        driver.get(issue)
+        captchaDriver.get("https://www.google.com")
+        captchaDriver.get(issue)
         input("Press Enter to continue once you have solved the captcha and closed the browser window")
-        options = webdriver.ChromeOptions()
-        # verbose (turned off)
-        options.add_experimental_option('excludeSwitches', ['enable-logging'])
-        if seleniumDisplay:
-            options.add_extension('AdblockPlusModified.crx')
-        else:    
-            options.add_argument("--headless")
-        driver = webdriver.Chrome(service=service, options=options)
         return downloadIssueWithSelenium(fullComicDownload, driver, service, issue, imageLinks, issueImageDict, startURL, title, singleIssueDownload, disableWait)
 
     print("Issue loaded in Selenium")
@@ -262,9 +275,7 @@ def downloadIssueWithSelenium(fullComicDownload, driver, service, issue, imageLi
             folderCBZPacker(comicTitle, issueName)
 
     if not disableWait:
-        counter=random.randint(10,20)
-        print(f"Sleeping for {counter} seconds")
-        time.sleep(counter)
+        runWait()
     
 def downloadAllWithSelenium(fullComicDownload, startURL, issueLinks, title, singleIssueDownload, disableWait, seleniumDisplay):
     print("\n Starting Selenium...")
@@ -317,11 +328,8 @@ def downloadAllWithRequests(fullComicDownload, startURL, issueLinks, title, sing
             else:
                 folderCBZPacker(comicTitle, issueName)
 
-        # This counter could probably be tweaked for faster performance
         if not disableWait:
-            counter=random.randint(10,20)
-            print(f"Sleeping for {counter} seconds")
-            time.sleep(counter)
+            runWait()
 
     return (imageLinks, issueImageDict)
 
@@ -383,6 +391,7 @@ def main(fullComicDownload, singleIssueDownload, title, lowres, disableWait, sta
 if __name__ == "__main__":
     # set versioning, follows https://semver.org/
     VERSION = "0.1.14"
+    print(f"\nComicScraper v{VERSION}")
 
     # build the parser
     parser = argparse.ArgumentParser(description=f'Script for downloading CBZ files from readcomiconline.li, version {VERSION}',
