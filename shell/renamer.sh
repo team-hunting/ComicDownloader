@@ -1,5 +1,6 @@
 #!/bin/bash
 # renames all the cbz files in a series of directories to have leading zeros up to 0000X
+echo "THIS WILL RENAME EVERYTHING IN THE CURRENT DIR"
 BASE=$(pwd)
 for d in */ ; do
     echo "working with $d"
