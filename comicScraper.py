@@ -44,6 +44,9 @@ headers = {
     'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0'
     }
 
+def get_script_path():
+    return os.path.dirname(os.path.realpath(sys.argv[0]))
+
 # Not used with Selenium
 def checkForCaptcha(line):
     if "AreYouHuman" in line:
@@ -258,9 +261,11 @@ def downloadIssueWithSelenium(fullComicDownload, driver, service, issue, imageLi
         print("Starting new Selenium session for captcha...")
         options = webdriver.ChromeOptions()
         if os.name == 'nt':
-            options.add_extension('AdblockPlusModified.crx')
+            print("Script path:")
+            print(get_script_path() + '\\AdblockPlusModified.crx')
+            options.add_extension(get_script_path() + '\\AdblockPlusModified.crx')
         else:       
-            options.add_extension('./AdblockPlusModified.crx') 
+            options.add_extension(get_script_path() + '/AdblockPlusModified.crx') 
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         captchaDriver = webdriver.Chrome(service=service, options=options)
         captchaDriver.maximize_window()
@@ -313,9 +318,11 @@ def downloadAllWithSelenium(fullComicDownload, startURL, issueLinks, title, sing
     if seleniumDisplay:
         # I modified the function detectFirstRun in the file background.js to prevent it from opening the 'introduction' tab on every run
         if os.name == 'nt':
-            options.add_extension('AdblockPlusModified.crx')
+            print("Script path:")
+            print(get_script_path() + '\\AdblockPlusModified.crx')
+            options.add_extension(get_script_path() + '\\AdblockPlusModified.crx')
         else:       
-            options.add_extension('./AdblockPlusModified.crx')  
+            options.add_extension(get_script_path() + '/AdblockPlusModified.crx')  
         driver = webdriver.Chrome(service=s, options=options)
         print("Attempting to add Adblocker extension... Please wait for page to refresh")
         driver.get("https://www.google.com")
