@@ -257,7 +257,10 @@ def downloadIssueWithSelenium(fullComicDownload, driver, service, issue, imageLi
         print("\n\nCaptcha detected, solving...")
         print("Starting new Selenium session for captcha...")
         options = webdriver.ChromeOptions()
-        options.add_extension('AdblockPlusModified.crx')
+        if os.name == 'nt':
+            options.add_extension('AdblockPlusModified.crx')
+        else:       
+            options.add_extension('./AdblockPlusModified.crx') 
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         captchaDriver = webdriver.Chrome(service=service, options=options)
         captchaDriver.maximize_window()
@@ -309,7 +312,10 @@ def downloadAllWithSelenium(fullComicDownload, startURL, issueLinks, title, sing
 
     if seleniumDisplay:
         # I modified the function detectFirstRun in the file background.js to prevent it from opening the 'introduction' tab on every run
-        options.add_extension('AdblockPlusModified.crx')
+        if os.name == 'nt':
+            options.add_extension('AdblockPlusModified.crx')
+        else:       
+            options.add_extension('./AdblockPlusModified.crx')  
         driver = webdriver.Chrome(service=s, options=options)
         print("Attempting to add Adblocker extension... Please wait for page to refresh")
         driver.get("https://www.google.com")
