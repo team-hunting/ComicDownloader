@@ -413,7 +413,7 @@ def main(fullComicDownload, singleIssueDownload, title, lowres, disableWait, sta
 if __name__ == "__main__":
     # set versioning, follows https://semver.org/
     VERSION = "0.1.14"
-    print(f"\nComicScraper v{VERSION}")
+    print(f"\nComicScraper v{VERSION} \n")
 
     # build the parser
     parser = argparse.ArgumentParser(description=f'Script for downloading CBZ files from readcomiconline.li, version {VERSION}',
@@ -432,6 +432,11 @@ if __name__ == "__main__":
         parser.print_help(sys.stderr)
         sys.exit(1)
     arguments = parser.parse_args()
+
+    if arguments.selenium == True and arguments.selenium_display == True:
+        print("Please provide only -s or -sd, not both")
+        print("Quitting")
+        quit()
 
     # set variables from arguments
     startURL = arguments.URL
@@ -462,13 +467,15 @@ if __name__ == "__main__":
         print("Downloading max quality images")
 
     useSelenium = False
-    seleniumDisplay = False
     if arguments.selenium == True:
         print("Argument -s detected. Using Selenium to scrape the page(s)")
-        if arguments.selenium_display == True:
-            print("Argument -sd detected. Using Selenium in display mode")
-            seleniumDisplay = True
         useSelenium = True
+    
+    seleniumDisplay = False
+    if arguments.selenium_display == True:
+        print("Argument -sd detected. Using Selenium in display mode")
+        useSelenium = True
+        seleniumDisplay = True
 
     print(f"Starting to scrape {comicTitle} from {startURL}")
 
