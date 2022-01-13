@@ -477,7 +477,13 @@ if __name__ == "__main__":
         useSelenium = True
         seleniumDisplay = True
 
+    disableWait = False
+    if arguments.disable_wait == True:
+        print("Argument -d detected. Disabling wait between requests")
+        print("This may cause CAPTCHAs to appear more often.")
+        disableWait = True
+
     print(f"Starting to scrape {comicTitle} from {startURL}")
 
-    main(downloadFull, singleIssue, comicTitle, lowres, arguments.disable_wait, startURL, useSelenium, seleniumDisplay)
+    main(downloadFull, singleIssue, comicTitle, lowres, disableWait, startURL, useSelenium, seleniumDisplay)
     print("\nComic Downloaded")
