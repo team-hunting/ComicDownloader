@@ -1,7 +1,7 @@
 #!/bin/bash
 # renames all the cbz files in a series of directories to have leading zeros up to 0000X
 echo "WARNING THIS WILL RENAME EVERYTHING"
-read "do you want to proceed? y/N" -i "n" ANS
+read -N 1 "do you want to proceed? y/N" -i "n" ANS
 if [[ $ANS == "Y" ]]
 then
     BASE=$(pwd)
