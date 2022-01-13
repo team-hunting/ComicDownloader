@@ -248,6 +248,17 @@ def runWait():
     print(f"Sleeping for {counter} seconds")
     time.sleep(counter)
 
+def addAdblocker(options):
+    try:
+        if os.name == 'nt':
+            print("Looking for adblocker here:")
+            print(get_script_path() + '\\AdblockPlusModified.crx')
+            options.add_extension(get_script_path() + '\\AdblockPlusModified.crx')
+        else:       
+            options.add_extension(get_script_path() + '/AdblockPlusModified.crx') 
+    except:
+        print("Adblocker not added")
+
 def downloadIssueWithSelenium(fullComicDownload, driver, service, issue, imageLinks, issueImageDict, startURL, title, singleIssueDownload, disableWait, seleniumDisplay):
     issueName = getIssueName(issue, startURL)
     # I *think* that driver.get causes it to wait until the entire page finish loading
@@ -260,12 +271,7 @@ def downloadIssueWithSelenium(fullComicDownload, driver, service, issue, imageLi
         print("\n\nCaptcha detected, solving...")
         print("Starting new Selenium session for captcha...")
         options = webdriver.ChromeOptions()
-        if os.name == 'nt':
-            print("Script path:")
-            print(get_script_path() + '\\AdblockPlusModified.crx')
-            options.add_extension(get_script_path() + '\\AdblockPlusModified.crx')
-        else:       
-            options.add_extension(get_script_path() + '/AdblockPlusModified.crx') 
+        addAdblocker(options)
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         captchaDriver = webdriver.Chrome(service=service, options=options)
         captchaDriver.maximize_window()
@@ -317,12 +323,7 @@ def downloadAllWithSelenium(fullComicDownload, startURL, issueLinks, title, sing
 
     if seleniumDisplay:
         # I modified the function detectFirstRun in the file background.js to prevent it from opening the 'introduction' tab on every run
-        if os.name == 'nt':
-            print("Script path:")
-            print(get_script_path() + '\\AdblockPlusModified.crx')
-            options.add_extension(get_script_path() + '\\AdblockPlusModified.crx')
-        else:       
-            options.add_extension(get_script_path() + '/AdblockPlusModified.crx')  
+        addAdblocker(options) 
         driver = webdriver.Chrome(service=s, options=options)
         print("Attempting to add Adblocker extension... Please wait for page to refresh")
         driver.get("https://www.google.com")
