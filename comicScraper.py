@@ -9,10 +9,15 @@ import sys
 import argparse
 import shutil
 from selenium import webdriver
+import selenium
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
+from selenium.webdriver.common.by import By
 
+# selenium TODO's
+# TODO: Download uBlock Origin crx and use as the adblocker extension instead of Adblock Plus
+# TODO: Add Firefox support (if we care)
 
 # general TODO's:
 # TODO: give the user an option to set a custom directory to download images and/or final CBZ to
@@ -23,8 +28,6 @@ from webdriver_manager.firefox import GeckoDriverManager
 # TODO: ensure all image types are grabbed (jpg, png, gif, etc.) from the blogspot links (needed?)
 # TODO: add a function to just download images, and one to just convert named images to CBZ's
 # TODO: add an option to just pass the search term and download all the series in the results (hit the search API)
-# TODO: add and option for downloading high or low quality versions of the images
-# TODO: add an error log if "/Special/AreYouHuman" ever shows up in the url responces. Kick it over to chrome to run the captcha and then continue
 # TODO: add logging over print statements and a -v / --verbose flag
 
 prefix = "https://readcomiconline.li"
@@ -32,8 +35,7 @@ readType = "&readType=1" # Suffix for issue URLs that makes it show all images o
 script_dir = os.getcwd() # lets the user add the script to their PATH var and have it populate in current working directory
 COUNTER = 0 # Image Numbers
 
-# Headers as a first line defense against captchas
-# Doesn't seem to work, but adding a timer under 'main' did work
+# Unsure if these headers have any effect that we care about
 headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET',
@@ -42,12 +44,17 @@ headers = {
     'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0'
     }
 
+def get_script_path():
+    return os.path.dirname(os.path.realpath(sys.argv[0]))
+
+# Not used with Selenium
 def checkForCaptcha(line):
     if "AreYouHuman" in line:
         print("Captcha Detected")
         return True
     return False
 
+# Not used with Selenium
 def solveCaptcha(url, tries=0):
     driverChoice = input("Do you prefer firefox 'f' or chrome 'c'? ") or "c"
     if tries > 2:
@@ -162,11 +169,52 @@ def extractImageUrlFromText(text, lowres):
         print("extractImageUrlFromText output ", output)
     return output
 
+def displayDownloadInfo(path):
+    list_of_files = list(filter( lambda x: os.path.isfile(os.path.join(path, x)), os.listdir(path)))
+    files_with_size = [ (file_name, os.stat(os.path.join(path, file_name)).st_size) for file_name in list_of_files  ]
+
+    print(f"Downloaded {len(list_of_files)} files to {path}")
+    smallFiles = []
+    totalSize = 0
+    for file_name, size in files_with_size:
+        totalSize += size
+        if size < 10000:
+            smallFiles.append(file_name)
+
+    sizeDisplay = round((totalSize/1000000),3)
+    
+    if sizeDisplay > 1:
+        sizeType = "mb"
+    else:
+        sizeType = "kb"
+        sizeDisplay = round((totalSize/1000),3)
+
+    print(f"Total size of files: {sizeDisplay}{sizeType}")
+
+    sizeDisplay = round(((totalSize/1000000)/len(list_of_files)),3)
+
+    if sizeDisplay > 1:
+        sizeType = "mb"
+    else:
+        sizeDisplay = round(((totalSize/1000)/len(list_of_files)),3)
+        sizeType = "kb"
+
+    print(f"Average file size: {sizeDisplay}{sizeType}")
+
+    if len(smallFiles) > 0:
+        print(f"The following {len(smallFiles)} files are smaller than 10kb")
+        print(smallFiles)
+    else:
+        print("All files are larger than 10kb - good to go!")
+
 def saveImagesFromImageLinks(imageLinks, numberOfImages, issueName=""):
+    global COUNTER
+    initial = COUNTER
     print("Downloading images...")
     for imageLink in imageLinks:
         path = saveImageFromUrl(imageLink, numberOfImages, issueName)
     # path should be the same for all images per folder
+    displayDownloadInfo(path)
     return path
 
 def saveImageFromUrl(url, numberOfImages, issueName=""):
@@ -194,26 +242,107 @@ def saveImageFromUrl(url, numberOfImages, issueName=""):
     # pass the path back for usage with zip
     return path
 
-def main(fullComicDownload, singleIssueDownload, title, lowres, disableWait):
-    comicLength = 0
+def runWait():
+    # This counter could probably be tweaked for faster performance
+    counter=random.randint(10,20)
+    print(f"Sleeping for {counter} seconds")
+    time.sleep(counter)
+
+def addAdblocker(options):
+    try:
+        if os.name == 'nt':
+            print("Looking for adblocker here:")
+            print(get_script_path() + '\\AdblockPlusModified.crx')
+            options.add_extension(get_script_path() + '\\AdblockPlusModified.crx')
+        else:       
+            options.add_extension(get_script_path() + '/AdblockPlusModified.crx') 
+    except:
+        print("Adblocker not added")
+
+def downloadIssueWithSelenium(fullComicDownload, driver, service, issue, imageLinks, issueImageDict, startURL, title, singleIssueDownload, disableWait, seleniumDisplay):
+    issueName = getIssueName(issue, startURL)
+    # I *think* that driver.get causes it to wait until the entire page finish loading
+    # It *appears* to load all the images into the browser before continuing
+    print(f"Selenium accessing {issue}")
+    print("Please wait...")
+    driver.get(issue)
+    source = driver.page_source
+    if "AreYouHuman" in source:
+        print("\n\nCaptcha detected, solving...")
+        print("Starting new Selenium session for captcha...")
+        options = webdriver.ChromeOptions()
+        addAdblocker(options)
+        options.add_experimental_option('excludeSwitches', ['enable-logging'])
+        captchaDriver = webdriver.Chrome(service=service, options=options)
+        captchaDriver.maximize_window()
+        print("Attempting to add Adblocker extension... Please wait for page to refresh")
+        captchaDriver.get("https://www.google.com")
+        captchaDriver.get(issue)
+        input("Press Enter to continue once you have solved the captcha and closed the browser window")
+        return downloadIssueWithSelenium(fullComicDownload, driver, service, issue, imageLinks, issueImageDict, startURL, title, singleIssueDownload, disableWait)
+
+    print("Issue loaded in Selenium")
+    images = driver.find_elements(By.TAG_NAME, "img")
+    issueImageLinks = []
+    for img in images:
+        source = img.get_attribute('src')
+        if 'blogspot' in source:
+            issueImageLinks.append(source)
+    
+    imageLinks.append(issueImageLinks)
+
+    print(f"Number of images to download {len(issueImageLinks)} \n")
 
     if singleIssueDownload:
-        issues = [startURL.replace(prefix, "")]
+        # title contains the issue name in this case
+        issueImageDict[title] = issueImageLinks
     else:
-        issues = getLinksFromStartPage(startURL)
+        print(f"Issue name: {issueName}")
+        issueImageDict[issueName] = issueImageLinks
 
-    print(f"Issues: {issues}\n")
+    if not fullComicDownload:
+        print(f"Downloading Issue: {comicTitle} : {issueName}")
+        global COUNTER
+        COUNTER = 1
+        path = saveImagesFromImageLinks(issueImageDict[issueName], len(issueImageDict[issueName]), issueName)
+        if singleIssueDownload:
+            folderCBZPacker(comicTitle, "")
+        else:
+            folderCBZPacker(comicTitle, issueName)
 
-    issueLinks = []
-    for issue in issues:
-        issueLink = prefix + issue + readType
-        issueLinks.append(issueLink)
-    print(f"Number of Issues to download {len(issueLinks)}\n")
-    print(f"Issues to download: \n{issueLinks}")
+    if not disableWait:
+        runWait()
+    
+def downloadAllWithSelenium(fullComicDownload, startURL, issueLinks, title, singleIssueDownload, disableWait, seleniumDisplay):
+    print("\n Starting Selenium...")
+    s=Service(ChromeDriverManager().install())
+    print()
+    options = webdriver.ChromeOptions()
+    # verbose (turned off)
+    options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
-    # Keeping the list as well as the dict for now, since reading sequentially from the list is easier when using the 'complete' flag
+    if seleniumDisplay:
+        # I modified the function detectFirstRun in the file background.js to prevent it from opening the 'introduction' tab on every run
+        addAdblocker(options) 
+        driver = webdriver.Chrome(service=s, options=options)
+        print("Attempting to add Adblocker extension... Please wait for page to refresh")
+        driver.get("https://www.google.com")
+    else:
+        options.add_argument("--headless")
+        driver = webdriver.Chrome(service=s, options=options)
+
     issueImageDict = {}
     imageLinks = []
+
+    for issue in issueLinks:
+        downloadIssueWithSelenium(fullComicDownload, driver, s, issue, imageLinks, issueImageDict, startURL, title, singleIssueDownload, disableWait, seleniumDisplay)
+    
+    return (imageLinks, issueImageDict)
+
+def downloadAllWithRequests(fullComicDownload, startURL, issueLinks, title, singleIssueDownload, disableWait):
+    issueImageDict = {}
+    imageLinks = []
+
     for issueLink in issueLinks:
         issueName = getIssueName(issueLink, startURL)
         issueImageLinks = scrapeImageLinksFromIssue(issueLink, lowres)
@@ -225,12 +354,59 @@ def main(fullComicDownload, singleIssueDownload, title, lowres, disableWait):
         else:
             issueImageDict[issueName] = issueImageLinks
 
-        # This counter could probably be tweaked for faster performance
+        if not fullComicDownload:
+            print(f"Downloading Issue {issueName}")
+            global COUNTER
+            COUNTER = 1
+            path = saveImagesFromImageLinks(issueImageDict[issueName], len(issueImageDict[issueName]), issueName)
+            if singleIssueDownload:
+                folderCBZPacker(comicTitle, "")
+            else:
+                folderCBZPacker(comicTitle, issueName)
+
         if not disableWait:
-            counter=random.randint(10,20)
-            print(f"Sleeping for {counter} seconds")
-            time.sleep(counter)
+            runWait()
+
+    return (imageLinks, issueImageDict)
+
+def main(fullComicDownload, singleIssueDownload, title, lowres, disableWait, startURL, useSelenium, seleniumDisplay):
+    comicLength = 0
+
+    if singleIssueDownload:
+        issues = [startURL.replace(prefix, "")]
+    else:
+        issues = getLinksFromStartPage(startURL)
+
+    # verbose
+    # print(f"Issues: {issues}\n")
+
+    highquality = ""
+    if useSelenium and not lowres:
+        highquality = "&quality=hq"
+
+    issueLinks = []
+    for issue in issues:
+        issueLink = prefix + issue + readType + highquality
+        issueLinks.append(issueLink)
+    print(f"Number of Issues to download {len(issueLinks)}\n")
+    issueTitles = [getIssueName(issueLink, startURL, replaceChar="") for issueLink in issueLinks]
+    print(f"Issues to download: \n{issueTitles}")
+
+    # verbose
+    # print(f"Issue Links {issueLinks}")
+
+    if useSelenium:
+        imageLinks, issueImageDict = downloadAllWithSelenium(fullComicDownload, startURL, issueLinks, title, singleIssueDownload, disableWait, seleniumDisplay)
+    else:
+        imageLinks, issueImageDict = downloadAllWithRequests(fullComicDownload, startURL, issueLinks, title, singleIssueDownload, disableWait)
+    
     print(f"Image links: {' '.join(map(str, imageLinks))}")
+    print(f"Number of issues to download {len(imageLinks)} \n")
+    totalImages = 0
+    for issue in imageLinks:
+        totalImages += len(issue)
+    print(f"Number of images to download: \n{totalImages}")
+    print(f"Issue image dict {issueImageDict}")
 
     # Determine length of full comic (how many zeroes to pad)
     if fullComicDownload:
@@ -242,17 +418,6 @@ def main(fullComicDownload, singleIssueDownload, title, lowres, disableWait):
             saveImagesFromImageLinks(issue, comicLength)
         folderCBZPacker(title)
 
-    else:
-        # uses the dict object to package the images into multiple CBZs
-        for key in issueImageDict:
-            global COUNTER
-            COUNTER = 1
-            path = saveImagesFromImageLinks(issueImageDict[key], len(issueImageDict[key]), key)
-            if singleIssueDownload:
-                folderCBZPacker(comicTitle, "")
-            else:
-                folderCBZPacker(comicTitle, key)
-
     downloadedBooks = compareCBZtoIssueList(issues)
     print(f"\nDownloaded:")
     for book in downloadedBooks:
@@ -261,7 +426,8 @@ def main(fullComicDownload, singleIssueDownload, title, lowres, disableWait):
 
 if __name__ == "__main__":
     # set versioning, follows https://semver.org/
-    VERSION = "0.1.12"
+    VERSION = "0.1.14"
+    print(f"\nComicScraper v{VERSION} \n")
 
     # build the parser
     parser = argparse.ArgumentParser(description=f'Script for downloading CBZ files from readcomiconline.li, version {VERSION}',
@@ -272,12 +438,19 @@ if __name__ == "__main__":
     parser.add_argument('-c', '--complete', help='Download the entire comic into one folder. Omit this argument to download each issue into its own folder', action='store_true')
     parser.add_argument('-l', '--lowres', help='Download low resolution images. Omit this argument to download the max quality images', action='store_true')
     parser.add_argument('-d', '--disable-wait', help='Disable the wait between requests (captcha guard)', action='store_true')
+    parser.add_argument('-s', '--selenium', help='Scrape image links using Selenium and a headless browser', action='store_true')
+    parser.add_argument('-sd', '--selenium-display', help='Use Selenium in display mode', action='store_true')
 
     # ensure that no args is a help call
     if len(sys.argv)==1:
         parser.print_help(sys.stderr)
         sys.exit(1)
     arguments = parser.parse_args()
+
+    if arguments.selenium == True and arguments.selenium_display == True:
+        print("Please provide only -s or -sd, not both")
+        print("Quitting")
+        quit()
 
     # set variables from arguments
     startURL = arguments.URL
@@ -307,7 +480,24 @@ if __name__ == "__main__":
     else:
         print("Downloading max quality images")
 
+    useSelenium = False
+    if arguments.selenium == True:
+        print("Argument -s detected. Using Selenium to scrape the page(s)")
+        useSelenium = True
+    
+    seleniumDisplay = False
+    if arguments.selenium_display == True:
+        print("Argument -sd detected. Using Selenium in display mode")
+        useSelenium = True
+        seleniumDisplay = True
+
+    disableWait = False
+    if arguments.disable_wait == True:
+        print("Argument -d detected. Disabling wait between requests")
+        print("This may cause CAPTCHAs to appear more often.")
+        disableWait = True
+
     print(f"Starting to scrape {comicTitle} from {startURL}")
 
-    main(downloadFull, singleIssue, comicTitle, lowres, arguments.disable_wait)
+    main(downloadFull, singleIssue, comicTitle, lowres, disableWait, startURL, useSelenium, seleniumDisplay)
     print("\nComic Downloaded")
