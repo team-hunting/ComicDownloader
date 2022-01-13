@@ -369,13 +369,14 @@ def downloadAllWithRequests(fullComicDownload, startURL, issueLinks, title, sing
 
     return (imageLinks, issueImageDict)
 
-def main(fullComicDownload, singleIssueDownload, title, lowres, disableWait, startURL, useSelenium, seleniumDisplay):
+def main(fullComicDownload, singleIssueDownload, title, lowres, disableWait, startURL, useSelenium, seleniumDisplay, issueStart):
     comicLength = 0
 
     if singleIssueDownload:
         issues = [startURL.replace(prefix, "")]
     else:
         issues = getLinksFromStartPage(startURL)
+        issues = issues[int(issueStart):]
 
     # verbose
     # print(f"Issues: {issues}\n")
@@ -440,6 +441,7 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--disable-wait', help='Disable the wait between requests (captcha guard)', action='store_true')
     parser.add_argument('-s', '--selenium', help='Scrape image links using Selenium and a headless browser', action='store_true')
     parser.add_argument('-sd', '--selenium-display', help='Use Selenium in display mode', action='store_true')
+    parser.add_argument('-i', '--issue', help='Select an issue to start downloading with', action='store_true')
 
     # ensure that no args is a help call
     if len(sys.argv)==1:
@@ -497,7 +499,12 @@ if __name__ == "__main__":
         print("This may cause CAPTCHAs to appear more often.")
         disableWait = True
 
+    issueStart = 0
+    if arguments.issue == True:
+        print("Argument -i detected.")
+        issueStart = input("What issue would you like to start with? enter an integer: ")
+
     print(f"Starting to scrape {comicTitle} from {startURL}")
 
-    main(downloadFull, singleIssue, comicTitle, lowres, disableWait, startURL, useSelenium, seleniumDisplay)
+    main(downloadFull, singleIssue, comicTitle, lowres, disableWait, startURL, useSelenium, seleniumDisplay, issueStart)
     print("\nComic Downloaded")
