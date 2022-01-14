@@ -119,11 +119,13 @@ def fileCBZrenamer(issuePath, currentPath=""):
             shutil.move(leftOver, folderLocation + "/" + leftOver)
     print(f"Comics have been moved to {folderLocation}")
 
-
 def folderCBZPacker(comicTitle, issuename="Complete"):
     # NOTE: this wont work for mixed media as it zips all images AND subfolders
     if issuename == "Complete":
-        shutil.make_archive(comicTitle + "-" + issuename, 'zip', comicTitle)
+        if platform.system() == "Windows":
+            shutil.make_archive(comicTitle + "-" + issuename, 'zip', comicTitle + "\\Complete")
+        else:
+            shutil.make_archive(comicTitle + "-" + issuename, 'zip', comicTitle + "/Complete")
     else:
         if platform.system() == "Windows":
             shutil.make_archive(comicTitle + issuename, 'zip', comicTitle + "\\" + issuename)
@@ -131,7 +133,11 @@ def folderCBZPacker(comicTitle, issuename="Complete"):
             shutil.make_archive(comicTitle + "-" + issuename, 'zip', comicTitle + "/" + issuename)
     if issuename:
         if platform.system() == "Windows":
-            os.rename(comicTitle + issuename + ".zip", comicTitle + issuename + ".cbz")
+            if issuename == "Complete":
+                os.rename(comicTitle + "-" + issuename + ".zip", comicTitle + "-" + issuename + ".cbz")
+                shutil.move(comicTitle + "-" + issuename + ".cbz", comicTitle)
+            else:
+                os.rename(comicTitle + issuename + ".zip", comicTitle + issuename + ".cbz")
         else:
             os.rename(comicTitle + "-" + issuename + ".zip", comicTitle + "-" + issuename + ".cbz")
     else:
@@ -149,8 +155,9 @@ def compareCBZtoIssueList(issues, path="."):
         else:
             named.append(getIssueName(issue, "/Comic/", "-"))
     missing = [comic for comic in named if comic not in allCBZFiles]
+    # This part isn't working
     if len(missing) > 0:
-        print(f"\nThere was an error downloading {missing}")
+        # print(f"\nThere was an error downloading {missing}")
         for missed in missing:
             named.remove(missed)
     return named
@@ -218,10 +225,10 @@ def extractImageUrlFromText(text, lowres):
     urlEnd = text.find("s1600")
     urlStart = text.find("https")
     output = text[urlStart:urlEnd+5]
-    print("extractImageUrlFromText output ", output)
+    # verbose
+    # print("extractImageUrlFromText output ", output)
     if not lowres:
         output = output.replace("s1600","s0")
-        print("extractImageUrlFromText output ", output)
     return output
 
 def displayDownloadInfo(path):
@@ -456,22 +463,33 @@ def main(fullComicDownload, singleIssueDownload, title, lowres, disableWait, sta
     else:
         imageLinks, issueImageDict = downloadAllWithRequests(fullComicDownload, startURL, issueLinks, title, singleIssueDownload, disableWait)
 
-    print(f"Image links: {' '.join(map(str, imageLinks))}")
+    # verbose
+    # print(f"Image links: {' '.join(map(str, imageLinks))}")
     print(f"Number of issues to download {len(imageLinks)} \n")
     totalImages = 0
     for issue in imageLinks:
         totalImages += len(issue)
     print(f"Number of images to download: \n{totalImages}")
-    print(f"Issue image dict {issueImageDict}")
+
+    # verbose
+    # print(f"Issue image dict {issueImageDict}")
 
     # Determine length of full comic (how many zeroes to pad)
     if fullComicDownload:
         for key in issueImageDict:
             comicLength += len(issueImageDict[key])
 
+        if platform.system() == "Windows":
+            complete = "\\Complete"
+        else:
+            complete = "/Complete"
         # uses the list object to package all the images into a single CBZ
+        images = []
         for issue in imageLinks:
-            saveImagesFromImageLinks(issue, comicLength)
+            for image in issue:
+                images.append(image)
+        saveImagesFromImageLinks(images, comicLength, complete)
+
         folderCBZPacker(title)
 
     downloadedBooks = compareCBZtoIssueList(issues)
