@@ -5,14 +5,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "args": [
-                "https://readcomiconline.li/Comic/Sandman-Presents-Bast"
-            ],
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "args": ["https://readcomiconline.li/Comic/Fables", "-l", "-d", "-s"]
         }
     ]
 }

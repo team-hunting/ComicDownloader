@@ -46,7 +46,7 @@ Example: comicScraper.py https://readcomiconline.li/Comic/Sandman-Presents-Lucif
 - Uses title "Lucifer", creates one large folder with every image in it, and one large cbz
 Example: comicScraper.py https://readcomiconline.li/Comic/1000-Storms/Issue-4?id=186482
 - Generates title for you, detects that a single issue link has been provided
-Example: comicScraper.py https://readcomiconline.li/Comic/Fables -l -d -s -sd
+Example: comicScraper.py https://readcomiconline.li/Comic/Fables -l -d -sd
 - Generates title for you, disables wait timer, downloads low(er) quality images, uses Selenium in display mode, downloads each issue into separate folders and CBZ files
 ```
 

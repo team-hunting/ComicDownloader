@@ -79,7 +79,7 @@ def solveCaptcha(url, tries=0):
     driver.get(url)
     input("Press Enter to continue once you have solved the captcha and closed the browser window")
 
-# function to prerpad zeros to issue numbers and move all cbz's in the current directory to title/CBZ_Files folder
+# function to prepad zeros to issue numbers and move all CBZs in the current directory to title/CBZ_Files folder
 def fileCBZrenamer(issuePath, currentPath=""):
     # get the current location of the cbz files
     if not currentPath:
@@ -126,11 +126,14 @@ def folderCBZPacker(comicTitle, issuename="Complete"):
         shutil.make_archive(comicTitle + "-" + issuename, 'zip', comicTitle)
     else:
         if platform.system() == "Windows":
-            shutil.make_archive(comicTitle + "-" + issuename, 'zip', comicTitle + "\\" + issuename)
+            shutil.make_archive(comicTitle + issuename, 'zip', comicTitle + "\\" + issuename)
         else:
             shutil.make_archive(comicTitle + "-" + issuename, 'zip', comicTitle + "/" + issuename)
     if issuename:
-        os.rename(comicTitle + "-" + issuename + ".zip", comicTitle + "-" + issuename + ".cbz")
+        if platform.system() == "Windows":
+            os.rename(comicTitle + issuename + ".zip", comicTitle + issuename + ".cbz")
+        else:
+            os.rename(comicTitle + "-" + issuename + ".zip", comicTitle + "-" + issuename + ".cbz")
     else:
         # removes trailing "-" in the filename
         os.rename(comicTitle + "-" + issuename + ".zip", comicTitle + ".cbz")
