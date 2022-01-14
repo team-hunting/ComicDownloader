@@ -182,7 +182,7 @@ def displayDownloadInfo(path):
             smallFiles.append(file_name)
 
     sizeDisplay = round((totalSize/1000000),3)
-    
+
     if sizeDisplay > 1:
         sizeType = "mb"
     else:
@@ -254,8 +254,8 @@ def addAdblocker(options):
             print("Looking for adblocker here:")
             print(get_script_path() + '\\AdblockPlusModified.crx')
             options.add_extension(get_script_path() + '\\AdblockPlusModified.crx')
-        else:       
-            options.add_extension(get_script_path() + '/AdblockPlusModified.crx') 
+        else:
+            options.add_extension(get_script_path() + '/AdblockPlusModified.crx')
     except:
         print("Adblocker not added")
 
@@ -288,7 +288,7 @@ def downloadIssueWithSelenium(fullComicDownload, driver, service, issue, imageLi
         source = img.get_attribute('src')
         if 'blogspot' in source:
             issueImageLinks.append(source)
-    
+
     imageLinks.append(issueImageLinks)
 
     print(f"Number of images to download {len(issueImageLinks)} \n")
@@ -312,7 +312,7 @@ def downloadIssueWithSelenium(fullComicDownload, driver, service, issue, imageLi
 
     if not disableWait:
         runWait()
-    
+
 def downloadAllWithSelenium(fullComicDownload, startURL, issueLinks, title, singleIssueDownload, disableWait, seleniumDisplay):
     print("\n Starting Selenium...")
     s=Service(ChromeDriverManager().install())
@@ -323,7 +323,7 @@ def downloadAllWithSelenium(fullComicDownload, startURL, issueLinks, title, sing
 
     if seleniumDisplay:
         # I modified the function detectFirstRun in the file background.js to prevent it from opening the 'introduction' tab on every run
-        addAdblocker(options) 
+        addAdblocker(options)
         driver = webdriver.Chrome(service=s, options=options)
         print("Attempting to add Adblocker extension... Please wait for page to refresh")
         driver.get("https://www.google.com")
@@ -336,7 +336,7 @@ def downloadAllWithSelenium(fullComicDownload, startURL, issueLinks, title, sing
 
     for issue in issueLinks:
         downloadIssueWithSelenium(fullComicDownload, driver, s, issue, imageLinks, issueImageDict, startURL, title, singleIssueDownload, disableWait, seleniumDisplay)
-    
+
     return (imageLinks, issueImageDict)
 
 def downloadAllWithRequests(fullComicDownload, startURL, issueLinks, title, singleIssueDownload, disableWait):
@@ -400,7 +400,7 @@ def main(fullComicDownload, singleIssueDownload, title, lowres, disableWait, sta
         imageLinks, issueImageDict = downloadAllWithSelenium(fullComicDownload, startURL, issueLinks, title, singleIssueDownload, disableWait, seleniumDisplay)
     else:
         imageLinks, issueImageDict = downloadAllWithRequests(fullComicDownload, startURL, issueLinks, title, singleIssueDownload, disableWait)
-    
+
     print(f"Image links: {' '.join(map(str, imageLinks))}")
     print(f"Number of issues to download {len(imageLinks)} \n")
     totalImages = 0
@@ -441,7 +441,7 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--disable-wait', help='Disable the wait between requests (captcha guard)', action='store_true')
     parser.add_argument('-s', '--selenium', help='Scrape image links using Selenium and a headless browser', action='store_true')
     parser.add_argument('-sd', '--selenium-display', help='Use Selenium in display mode', action='store_true')
-    parser.add_argument('-i', '--issue', help='Select an issue to start downloading with', action='store_true')
+    parser.add_argument('-i', '--issue', help='Select an issue to start downloading with, Experimental', action='store_true')
 
     # ensure that no args is a help call
     if len(sys.argv)==1:
@@ -486,7 +486,7 @@ if __name__ == "__main__":
     if arguments.selenium == True:
         print("Argument -s detected. Using Selenium to scrape the page(s)")
         useSelenium = True
-    
+
     seleniumDisplay = False
     if arguments.selenium_display == True:
         print("Argument -sd detected. Using Selenium in display mode")
