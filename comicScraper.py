@@ -555,6 +555,7 @@ if __name__ == "__main__":
     issueStart = 0
     if arguments.issue == True:
         print("Argument -i detected.")
+        print("This is an experimental feature. Use at your own risk. Meant to be used when the script has crashed partway through a series.")
         issueStart = input("What issue would you like to start with? enter an integer: ")
 
     print(f"Starting to scrape {comicTitle} from {startURL}")
