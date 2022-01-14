@@ -79,11 +79,45 @@ def solveCaptcha(url, tries=0):
     driver.get(url)
     input("Press Enter to continue once you have solved the captcha and closed the browser window")
 
-# TODO: need to prepend zeros to the issue numbers here
-# TODO: make a folder named CBZ-files in the issuename folder and move the comics there
-# TODO: call this at the end of the script
-def fileCBZrenamer(issuePath, currentPath):
-    pass
+# function to prerpad zeros to issue numbers and move all cbz's in the current directory to title/CBZ_Files folder
+def fileCBZrenamer(issuePath, currentPath=""):
+    # get the current location of the cbz files
+    if not currentPath:
+        currentPath = get_script_path()
+    if platform.system() == "Windows":
+        folderLocation = issuePath + "\\CBZ_Files"
+    else:
+        folderLocation = issuePath + "/CBZ_Files"
+    if not os.path.isdir(folderLocation):
+        os.mkdir(folderLocation)
+    # filter out all the comics with a number and .cbz at the end
+    numberedComics = [comic for comic in os.listdir(currentPath) if comic.endswith(".cbz") and re.search(".*[0-9].cbz", comic)]
+    if not numberedComics:
+        return
+    # pad the comic with the correct number
+    for comicFile in numberedComics:
+        # strip the .cbz and number
+        strippedCBZ = str(comicFile).split(".")[0]
+        strippedNumber = strippedCBZ.split("-")[-1]
+        splitComic = strippedCBZ.split("-")[0:-1]
+        # pad the number
+        prepadLength = len(str(len(numberedComics)))
+        paddedNumber = strippedNumber.rjust(prepadLength, "0")
+        # rebuild the comic name with the padded number
+        comic = '-'.join(map(str, splitComic)) + "-" + paddedNumber + ".cbz"
+        # rename and move the numbered comics to the CBZ_Files folder
+        if platform.system() == "Windows":
+            shutil.move(comicFile, folderLocation + "\\" + comic)
+        else:
+            shutil.move(comicFile, folderLocation + "/" + comic)
+    # move the remaning cbz files
+    leftOverComics = [comic for comic in os.listdir(currentPath) if comic.endswith(".cbz")]
+    for leftOver in leftOverComics:
+        if platform.system() == "Windows":
+            shutil.move(leftOver, folderLocation + "\\" + leftOver)
+        else:
+            shutil.move(leftOver, folderLocation + "/" + leftOver)
+    print(f"Comics have been moved to {folderLocation}")
 
 
 def folderCBZPacker(comicTitle, issuename="Complete"):
@@ -440,7 +474,7 @@ def main(fullComicDownload, singleIssueDownload, title, lowres, disableWait, sta
     print(f"\nDownloaded:")
     for book in downloadedBooks:
         print(f"{book}")
-    # TODO: add renamer and mover here
+    fileCBZrenamer(title)
 
 
 if __name__ == "__main__":
