@@ -7,6 +7,7 @@ import time
 import random
 import sys
 import argparse
+import platform
 import shutil
 from selenium import webdriver
 import selenium
@@ -14,6 +15,7 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 from selenium.webdriver.common.by import By
+import re
 
 # selenium TODO's
 # TODO: Download uBlock Origin crx and use as the adblocker extension instead of Adblock Plus
@@ -77,12 +79,22 @@ def solveCaptcha(url, tries=0):
     driver.get(url)
     input("Press Enter to continue once you have solved the captcha and closed the browser window")
 
-def folderCBZPacker(path, issuename="Complete"):
+# TODO: need to prepend zeros to the issue numbers here
+# TODO: make a folder named CBZ-files in the issuename folder and move the comics there
+# TODO: call this at the end of the script
+def fileCBZrenamer(issuePath, currentPath):
+    pass
+
+
+def folderCBZPacker(comicTitle, issuename="Complete"):
     # NOTE: this wont work for mixed media as it zips all images AND subfolders
     if issuename == "Complete":
-        shutil.make_archive(comicTitle + "-" + issuename, 'zip', path)
+        shutil.make_archive(comicTitle + "-" + issuename, 'zip', comicTitle)
     else:
-        shutil.make_archive(comicTitle + "-" + issuename, 'zip', path + "/" + issuename)
+        if platform.system() == "Windows":
+            shutil.make_archive(comicTitle + "-" + issuename, 'zip', comicTitle + "\\" + issuename)
+        else:
+            shutil.make_archive(comicTitle + "-" + issuename, 'zip', comicTitle + "/" + issuename)
     if issuename:
         os.rename(comicTitle + "-" + issuename + ".zip", comicTitle + "-" + issuename + ".cbz")
     else:
@@ -90,12 +102,15 @@ def folderCBZPacker(path, issuename="Complete"):
         os.rename(comicTitle + "-" + issuename + ".zip", comicTitle + ".cbz")
 
 # checks if the number of issues matches up with the number of downloads
-def compareCBZtoIssueList(issues):
+def compareCBZtoIssueList(issues, path="."):
     # grab all the cbz files in the current directory
-    allCBZFiles = [comic.split(".")[0] for comic in os.listdir('.') if comic.endswith(".cbz")]
+    allCBZFiles = [comic.split(".")[0] for comic in os.listdir(path) if comic.endswith(".cbz")]
     named = []
     for issue in issues:
-        named.append(getIssueName(issue, "/Comic/", "-"))
+        if platform.system() == "Windows":
+            named.append(getIssueName(issue, "\\Comic\\", "-"))
+        else:
+            named.append(getIssueName(issue, "/Comic/", "-"))
     missing = [comic for comic in named if comic not in allCBZFiles]
     if len(missing) > 0:
         print(f"\nThere was an error downloading {missing}")
@@ -107,7 +122,10 @@ def getIssueName(issueLink, startURL, replaceChar=""):
     # first get the issue name/number.
     # remove the start url, trim the leading /, and everything after the ?
     issueName = issueLink.replace(startURL, "", 1)[0:].split("?",1)[0]
-    issueName = issueName.replace("/", replaceChar)
+    if platform.system() == "Windows":
+        issueName = issueName.replace("\\", replaceChar)
+    else:
+        issueName = issueName.replace("/", replaceChar)
     return issueName
 
 def getComicTitle(url, issue=False):
@@ -182,7 +200,7 @@ def displayDownloadInfo(path):
             smallFiles.append(file_name)
 
     sizeDisplay = round((totalSize/1000000),3)
-    
+
     if sizeDisplay > 1:
         sizeType = "mb"
     else:
@@ -254,8 +272,8 @@ def addAdblocker(options):
             print("Looking for adblocker here:")
             print(get_script_path() + '\\AdblockPlusModified.crx')
             options.add_extension(get_script_path() + '\\AdblockPlusModified.crx')
-        else:       
-            options.add_extension(get_script_path() + '/AdblockPlusModified.crx') 
+        else:
+            options.add_extension(get_script_path() + '/AdblockPlusModified.crx')
     except:
         print("Adblocker not added")
 
@@ -288,7 +306,7 @@ def downloadIssueWithSelenium(fullComicDownload, driver, service, issue, imageLi
         source = img.get_attribute('src')
         if 'blogspot' in source:
             issueImageLinks.append(source)
-    
+
     imageLinks.append(issueImageLinks)
 
     print(f"Number of images to download {len(issueImageLinks)} \n")
@@ -312,7 +330,7 @@ def downloadIssueWithSelenium(fullComicDownload, driver, service, issue, imageLi
 
     if not disableWait:
         runWait()
-    
+
 def downloadAllWithSelenium(fullComicDownload, startURL, issueLinks, title, singleIssueDownload, disableWait, seleniumDisplay):
     print("\n Starting Selenium...")
     s=Service(ChromeDriverManager().install())
@@ -323,7 +341,7 @@ def downloadAllWithSelenium(fullComicDownload, startURL, issueLinks, title, sing
 
     if seleniumDisplay:
         # I modified the function detectFirstRun in the file background.js to prevent it from opening the 'introduction' tab on every run
-        addAdblocker(options) 
+        addAdblocker(options)
         driver = webdriver.Chrome(service=s, options=options)
         print("Attempting to add Adblocker extension... Please wait for page to refresh")
         driver.get("https://www.google.com")
@@ -336,7 +354,7 @@ def downloadAllWithSelenium(fullComicDownload, startURL, issueLinks, title, sing
 
     for issue in issueLinks:
         downloadIssueWithSelenium(fullComicDownload, driver, s, issue, imageLinks, issueImageDict, startURL, title, singleIssueDownload, disableWait, seleniumDisplay)
-    
+
     return (imageLinks, issueImageDict)
 
 def downloadAllWithRequests(fullComicDownload, startURL, issueLinks, title, singleIssueDownload, disableWait):
@@ -399,7 +417,7 @@ def main(fullComicDownload, singleIssueDownload, title, lowres, disableWait, sta
         imageLinks, issueImageDict = downloadAllWithSelenium(fullComicDownload, startURL, issueLinks, title, singleIssueDownload, disableWait, seleniumDisplay)
     else:
         imageLinks, issueImageDict = downloadAllWithRequests(fullComicDownload, startURL, issueLinks, title, singleIssueDownload, disableWait)
-    
+
     print(f"Image links: {' '.join(map(str, imageLinks))}")
     print(f"Number of issues to download {len(imageLinks)} \n")
     totalImages = 0
@@ -422,6 +440,7 @@ def main(fullComicDownload, singleIssueDownload, title, lowres, disableWait, sta
     print(f"\nDownloaded:")
     for book in downloadedBooks:
         print(f"{book}")
+    # TODO: add renamer and mover here
 
 
 if __name__ == "__main__":
@@ -484,7 +503,7 @@ if __name__ == "__main__":
     if arguments.selenium == True:
         print("Argument -s detected. Using Selenium to scrape the page(s)")
         useSelenium = True
-    
+
     seleniumDisplay = False
     if arguments.selenium_display == True:
         print("Argument -sd detected. Using Selenium in display mode")
