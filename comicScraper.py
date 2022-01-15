@@ -91,7 +91,11 @@ def fileCBZrenamer(issuePath, currentPath="", fullComicDownload=False):
     if not os.path.isdir(folderLocation):
         os.mkdir(folderLocation)
     # filter out all the comics with a number and .cbz at the end
-    numberedComics = [comic for comic in os.listdir(issuePath) if comic.endswith(".cbz") and re.search(".*[0-9].cbz", comic)]
+    if platform.system() == "Windows":
+        numberedComics = [comic for comic in os.listdir(issuePath) if comic.endswith(".cbz") and re.search(".*[0-9].cbz", comic)]
+    else:
+        numberedComics = [comic for comic in os.listdir(currentPath) if comic.endswith(".cbz") and re.search(".*[0-9].cbz", comic)]
+
     if not numberedComics and not fullComicDownload:
         return
     # pad the comic with the correct number
