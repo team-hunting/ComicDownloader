@@ -36,7 +36,9 @@ optional arguments:
   -s, --selenium        Scrape image links using Selenium and a headless browser
   -sd, --selenium-display 
                         Use Selenium in display mode 
-  -i, -issue            Pass this argument when you want to start your download at a specific issue number. For example, if the script crashes after downloading 100 out of 150 issues, start the script again and pass in -i, then input 100 when prompted, and it should only download the remaining 50.
+  -i, -issue            Pass this argument when you want to start your download at a specific issue number. 
+                        For example, if the script crashes after downloading 100 out of 150 issues, start the script again and pass in -i, then input 100 when prompted. 
+                        It should only download the remaining 50.
 
 Example: comicScraper.py https://readcomiconline.li/Comic/Sandman-Presents-Lucifer
 - Generates title for you, creates a folder and cbz file for each issue separately

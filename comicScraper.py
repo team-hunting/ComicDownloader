@@ -80,7 +80,7 @@ def solveCaptcha(url, tries=0):
     input("Press Enter to continue once you have solved the captcha and closed the browser window")
 
 # function to prepad zeros to issue numbers and move all CBZs in the current directory to title/CBZ_Files folder
-def fileCBZrenamer(issuePath, currentPath=""):
+def fileCBZrenamer(issuePath, currentPath="", fullComicDownload=False):
     # get the current location of the cbz files
     if not currentPath:
         currentPath = get_script_path()
@@ -91,8 +91,12 @@ def fileCBZrenamer(issuePath, currentPath=""):
     if not os.path.isdir(folderLocation):
         os.mkdir(folderLocation)
     # filter out all the comics with a number and .cbz at the end
-    numberedComics = [comic for comic in os.listdir(currentPath) if comic.endswith(".cbz") and re.search(".*[0-9].cbz", comic)]
-    if not numberedComics:
+    if platform.system() == "Windows":
+        numberedComics = [comic for comic in os.listdir(issuePath) if comic.endswith(".cbz") and re.search(".*[0-9].cbz", comic)]
+    else:
+        numberedComics = [comic for comic in os.listdir(currentPath) if comic.endswith(".cbz") and re.search(".*[0-9].cbz", comic)]
+
+    if not numberedComics and not fullComicDownload:
         return
     # pad the comic with the correct number
     for comicFile in numberedComics:
@@ -107,11 +111,14 @@ def fileCBZrenamer(issuePath, currentPath=""):
         comic = '-'.join(map(str, splitComic)) + "-" + paddedNumber + ".cbz"
         # rename and move the numbered comics to the CBZ_Files folder
         if platform.system() == "Windows":
-            shutil.move(comicFile, folderLocation + "\\" + comic)
+            shutil.move(issuePath + "\\" + comicFile, folderLocation + "\\" + comic)
         else:
             shutil.move(comicFile, folderLocation + "/" + comic)
-    # move the remaning cbz files
-    leftOverComics = [comic for comic in os.listdir(currentPath) if comic.endswith(".cbz")]
+    # move the remaining cbz files
+    if platform.system() == "Windows":
+        leftOverComics = [comic for comic in os.listdir(issuePath) if comic.endswith(".cbz")]
+    else:
+        leftOverComics = [comic for comic in os.listdir(currentPath) if comic.endswith(".cbz")]
     for leftOver in leftOverComics:
         if platform.system() == "Windows":
             shutil.move(leftOver, folderLocation + "\\" + leftOver)
@@ -119,11 +126,13 @@ def fileCBZrenamer(issuePath, currentPath=""):
             shutil.move(leftOver, folderLocation + "/" + leftOver)
     print(f"Comics have been moved to {folderLocation}")
 
-
 def folderCBZPacker(comicTitle, issuename="Complete"):
     # NOTE: this wont work for mixed media as it zips all images AND subfolders
     if issuename == "Complete":
-        shutil.make_archive(comicTitle + "-" + issuename, 'zip', comicTitle)
+        if platform.system() == "Windows":
+            shutil.make_archive(comicTitle + "-" + issuename, 'zip', comicTitle + "\\Complete")
+        else:
+            shutil.make_archive(comicTitle + "-" + issuename, 'zip', comicTitle + "/Complete")
     else:
         if platform.system() == "Windows":
             shutil.make_archive(comicTitle + issuename, 'zip', comicTitle + "\\" + issuename)
@@ -131,7 +140,11 @@ def folderCBZPacker(comicTitle, issuename="Complete"):
             shutil.make_archive(comicTitle + "-" + issuename, 'zip', comicTitle + "/" + issuename)
     if issuename:
         if platform.system() == "Windows":
-            os.rename(comicTitle + issuename + ".zip", comicTitle + issuename + ".cbz")
+            if issuename == "Complete":
+                os.rename(comicTitle + "-" + issuename + ".zip", comicTitle + "-" + issuename + ".cbz")
+                shutil.move(comicTitle + "-" + issuename + ".cbz", comicTitle)
+            else:
+                os.rename(comicTitle + issuename + ".zip", comicTitle + issuename + ".cbz")
         else:
             os.rename(comicTitle + "-" + issuename + ".zip", comicTitle + "-" + issuename + ".cbz")
     else:
@@ -139,16 +152,25 @@ def folderCBZPacker(comicTitle, issuename="Complete"):
         os.rename(comicTitle + "-" + issuename + ".zip", comicTitle + ".cbz")
 
 # checks if the number of issues matches up with the number of downloads
-def compareCBZtoIssueList(issues, path="."):
+def compareCBZtoIssueList(issues, path=".", comicTitle="", complete=False):
     # grab all the cbz files in the current directory
-    allCBZFiles = [comic.split(".")[0] for comic in os.listdir(path) if comic.endswith(".cbz")]
+    if platform.system() == "Windows":
+        if path == ".":
+            path = os.getcwd()
+        allCBZFiles = [comic.split(".")[0] for comic in os.listdir(path) if comic.endswith(".cbz")]
+    else:
+        allCBZFiles = [comic.split(".")[0] for comic in os.listdir(path) if comic.endswith(".cbz")]
     named = []
-    for issue in issues:
-        if platform.system() == "Windows":
-            named.append(getIssueName(issue, "\\Comic\\", "-"))
-        else:
-            named.append(getIssueName(issue, "/Comic/", "-"))
+    if not complete:
+        for issue in issues:
+            if platform.system() == "Windows":
+                named.append(getIssueName(issue, "/Comic/" + comicTitle + "/", "-"))
+            else:
+                named.append(getIssueName(issue, "/Comic/", "-"))
+    else:
+        named = [comicTitle + "-Complete"]
     missing = [comic for comic in named if comic not in allCBZFiles]
+    # This part isn't working
     if len(missing) > 0:
         print(f"\nThere was an error downloading {missing}")
         for missed in missing:
@@ -218,10 +240,10 @@ def extractImageUrlFromText(text, lowres):
     urlEnd = text.find("s1600")
     urlStart = text.find("https")
     output = text[urlStart:urlEnd+5]
-    print("extractImageUrlFromText output ", output)
+    # verbose
+    # print("extractImageUrlFromText output ", output)
     if not lowres:
         output = output.replace("s1600","s0")
-        print("extractImageUrlFromText output ", output)
     return output
 
 def displayDownloadInfo(path):
@@ -451,34 +473,53 @@ def main(fullComicDownload, singleIssueDownload, title, lowres, disableWait, sta
     # verbose
     # print(f"Issue Links {issueLinks}")
 
+    imageLinks = []
+    issueImageDict = {}
+
     if useSelenium:
         imageLinks, issueImageDict = downloadAllWithSelenium(fullComicDownload, startURL, issueLinks, title, singleIssueDownload, disableWait, seleniumDisplay)
     else:
         imageLinks, issueImageDict = downloadAllWithRequests(fullComicDownload, startURL, issueLinks, title, singleIssueDownload, disableWait)
 
-    print(f"Image links: {' '.join(map(str, imageLinks))}")
+    # verbose
+    # print(f"Image links: {' '.join(map(str, imageLinks))}")
     print(f"Number of issues to download {len(imageLinks)} \n")
     totalImages = 0
     for issue in imageLinks:
         totalImages += len(issue)
     print(f"Number of images to download: \n{totalImages}")
-    print(f"Issue image dict {issueImageDict}")
+
+    # verbose
+    # print(f"Issue image dict {issueImageDict}")
 
     # Determine length of full comic (how many zeroes to pad)
     if fullComicDownload:
         for key in issueImageDict:
             comicLength += len(issueImageDict[key])
 
+        if platform.system() == "Windows":
+            complete = "\\Complete"
+        else:
+            complete = "/Complete"
         # uses the list object to package all the images into a single CBZ
+        images = []
         for issue in imageLinks:
-            saveImagesFromImageLinks(issue, comicLength)
+            for image in issue:
+                images.append(image)
+        saveImagesFromImageLinks(images, comicLength, complete)
+
         folderCBZPacker(title)
 
-    downloadedBooks = compareCBZtoIssueList(issues)
+    if platform.system() == "Windows":
+        path = os.getcwd() + "\\" + title
+    else:
+        path = os.getcwd() + "/" + title
+
+    downloadedBooks = compareCBZtoIssueList(issues, path, title, fullComicDownload)
     print(f"\nDownloaded:")
     for book in downloadedBooks:
         print(f"{book}")
-    fileCBZrenamer(title)
+    fileCBZrenamer(title, fullComicDownload=fullComicDownload)
 
 
 if __name__ == "__main__":
