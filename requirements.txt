@@ -1,10 +1,4 @@
 beautifulsoup4==4.10.0
-bs4==0.0.1
-certifi==2021.10.8
-charset-normalizer==2.0.10
-idna==3.3
-requests==2.27.0
-soupsieve==2.3.1
-urllib3==1.26.7
+requests==2.27.1
 webdriver-manager==3.5.2
 selenium==4.1.0

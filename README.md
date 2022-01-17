@@ -11,6 +11,7 @@ To ensure all run requirements are met, please do the following:
  - install python3.6 or greater (python3.8 is recommended)
  - run `pip install -r requirements.txt`
 
+Note: Usage of python virtual environments, both [virtualenv](https://pypi.org/project/virtualenv/) and [venv](https://docs.python.org/3/library/venv.html) should work with this project.
 
 **Usage:**
 
@@ -34,10 +35,10 @@ optional arguments:
                         quality images
   -d, --disable-wait    Disable the wait between requests (captcha guard)
   -s, --selenium        Scrape image links using Selenium and a headless browser
-  -sd, --selenium-display 
-                        Use Selenium in display mode 
-  -i, -issue            Pass this argument when you want to start your download at a specific issue number. 
-                        For example, if the script crashes after downloading 100 out of 150 issues, start the script again and pass in -i, then input 100 when prompted. 
+  -sd, --selenium-display
+                        Use Selenium in display mode
+  -i, -issue            Pass this argument when you want to start your download at a specific issue number.
+                        For example, if the script crashes after downloading 100 out of 150 issues, start the script again and pass in -i, then input 100 when prompted.
                         It should only download the remaining 50.
 
 Example: comicScraper.py https://readcomiconline.li/Comic/Sandman-Presents-Lucifer
