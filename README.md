@@ -10,6 +10,7 @@ Downloads Comics from readcomiconline.li
 To ensure all run requirements are met, please do the following:
  - install python3.6 or greater (python3.8 is recommended)
  - run `pip install -r requirements.txt`
+   - Note: ensure `pip -V` returns `...(python 3.8)` or greater. This project will not work on pyhon 2.x or with pip2 
 
 Note: Usage of python virtual environments, both [virtualenv](https://pypi.org/project/virtualenv/) and [venv](https://docs.python.org/3/library/venv.html) should work with this project.
 
