@@ -9,6 +9,7 @@ Downloads Comics from readcomiconline.li
 
 To ensure all run requirements are met, please do the following:
  - install python3.6 or greater (python3.8 is recommended)
+ - install pip3, ideally 20.0.2 or greater
  - run `pip install -r requirements.txt`
    - Note: ensure `pip -V` returns `...(python 3.8)` or greater. This project will not work on pyhon 2.x or with pip2 
 
