@@ -245,9 +245,9 @@ def scrapeImageLinksFromIssue(url, lowres):
     return imageLinks
 
 def extractImageUrlFromText(text, lowres):
-    urlEnd = text.find("s1600")
+    urlEnd = text.find(")")
     urlStart = text.find("https")
-    output = text[urlStart:urlEnd+5]
+    output = text[urlStart:urlEnd-1]
     # verbose
     # print("extractImageUrlFromText output ", output)
     if not lowres:
