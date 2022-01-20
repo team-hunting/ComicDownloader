@@ -126,7 +126,7 @@ def fileCBZrenamer(issuePath, currentPath="", fullComicDownload=False):
             shutil.move(leftOver, folderLocation + "/" + leftOver)
     print(f"Comics have been moved to {folderLocation}")
 
-def folderCBZPacker(comicTitle, issuename="Complete"):
+def folderCBZPacker(comicTitle, issuename="Complete", singleIssue=False):
     # NOTE: this wont work for mixed media as it zips all images AND subfolders
     if issuename == "Complete":
         if platform.system() == "Windows":
@@ -137,7 +137,10 @@ def folderCBZPacker(comicTitle, issuename="Complete"):
         if platform.system() == "Windows":
             shutil.make_archive(comicTitle + issuename, 'zip', comicTitle + "\\" + issuename)
         else:
-            shutil.make_archive(comicTitle + "-" + issuename, 'zip', comicTitle + "/" + issuename)
+            if singleIssue:
+                shutil.make_archive(comicTitle, 'zip', comicTitle + os.sep + comicTitle)
+            else:
+                shutil.make_archive(comicTitle + "-" + issuename, 'zip', comicTitle + "/" + issuename)
     if issuename:
         if platform.system() == "Windows":
             if issuename == "Complete":
@@ -149,7 +152,12 @@ def folderCBZPacker(comicTitle, issuename="Complete"):
             os.rename(comicTitle + "-" + issuename + ".zip", comicTitle + "-" + issuename + ".cbz")
     else:
         # removes trailing "-" in the filename
-        os.rename(comicTitle + "-" + issuename + ".zip", comicTitle + ".cbz")
+        if singleIssue:
+            os.rename(comicTitle + ".zip", comicTitle + ".cbz")
+            if platform.system() == "Windows":
+                shutil.move(comicTitle + ".cbz", comicTitle)
+        else:
+            os.rename(comicTitle + "-" + issuename + ".zip", comicTitle + ".cbz")
 
 # checks if the number of issues matches up with the number of downloads
 def compareCBZtoIssueList(issues, path=".", comicTitle="", complete=False):
@@ -237,9 +245,9 @@ def scrapeImageLinksFromIssue(url, lowres):
     return imageLinks
 
 def extractImageUrlFromText(text, lowres):
-    urlEnd = text.find("s1600")
+    urlEnd = text.find(")")
     urlStart = text.find("https")
-    output = text[urlStart:urlEnd+5]
+    output = text[urlStart:urlEnd-1]
     # verbose
     # print("extractImageUrlFromText output ", output)
     if not lowres:
@@ -336,6 +344,10 @@ def addAdblocker(options):
     except:
         print("Adblocker not added")
 
+def getStartUrlFromIssueUrl(issueUrl):
+    finalSlash = issueUrl.rfind("/")
+    return issueUrl[:finalSlash+1]
+
 def downloadIssueWithSelenium(fullComicDownload, driver, service, issue, imageLinks, issueImageDict, startURL, title, singleIssueDownload, disableWait, seleniumDisplay):
     issueName = getIssueName(issue, startURL)
     # I *think* that driver.get causes it to wait until the entire page finish loading
@@ -381,9 +393,12 @@ def downloadIssueWithSelenium(fullComicDownload, driver, service, issue, imageLi
         print(f"Downloading Issue: {comicTitle} : {issueName}")
         global COUNTER
         COUNTER = 1
-        path = saveImagesFromImageLinks(issueImageDict[issueName], len(issueImageDict[issueName]), issueName)
         if singleIssueDownload:
-            folderCBZPacker(comicTitle, "")
+            path = saveImagesFromImageLinks(issueImageDict[title], len(issueImageDict[title]), title)
+        else:
+            path = saveImagesFromImageLinks(issueImageDict[issueName], len(issueImageDict[issueName]), issueName)
+        if singleIssueDownload:
+            folderCBZPacker(title, "", True)
         else:
             folderCBZPacker(comicTitle, issueName)
 
@@ -435,9 +450,12 @@ def downloadAllWithRequests(fullComicDownload, startURL, issueLinks, title, sing
             print(f"Downloading Issue {issueName}")
             global COUNTER
             COUNTER = 1
-            path = saveImagesFromImageLinks(issueImageDict[issueName], len(issueImageDict[issueName]), issueName)
             if singleIssueDownload:
-                folderCBZPacker(comicTitle, "")
+                path = saveImagesFromImageLinks(issueImageDict[title], len(issueImageDict[title]), title)
+            else:
+                path = saveImagesFromImageLinks(issueImageDict[issueName], len(issueImageDict[issueName]), issueName)
+            if singleIssueDownload:
+                folderCBZPacker(title, "", True)
             else:
                 folderCBZPacker(comicTitle, issueName)
 
@@ -451,6 +469,7 @@ def main(fullComicDownload, singleIssueDownload, title, lowres, disableWait, sta
 
     if singleIssueDownload:
         issues = [startURL.replace(prefix, "")]
+        startURL = getStartUrlFromIssueUrl(startURL)
     else:
         issues = getLinksFromStartPage(startURL)
         issues = issues[int(issueStart):]
