@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "args": ["https://readcomiconline.li/Comic/The-Scorched", "-l", "-d"]
+            "args": ["https://readcomiconline.li/Comic/The-Superior-Foes-of-Spider-Man/Issue-7?id=2109"]
         }
     ]
 }
