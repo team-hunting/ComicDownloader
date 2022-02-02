@@ -368,7 +368,7 @@ def downloadIssueWithSelenium(fullComicDownload, driver, service, issue, imageLi
         captchaDriver.get("https://www.google.com")
         captchaDriver.get(issue)
         input("Press Enter to continue once you have solved the captcha and closed the browser window")
-        return downloadIssueWithSelenium(fullComicDownload, driver, service, issue, imageLinks, issueImageDict, startURL, title, singleIssueDownload, disableWait)
+        return downloadIssueWithSelenium(fullComicDownload, driver, service, issue, imageLinks, issueImageDict, startURL, title, singleIssueDownload, disableWait, seleniumDisplay)
 
     print("Issue loaded in Selenium")
     images = driver.find_elements(By.TAG_NAME, "img")
